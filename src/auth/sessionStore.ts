@@ -1,0 +1,106 @@
+import { ApiError, onUnauthorized, setCsrfToken } from '../services/apiClient'
+import * as authApi from '../services/auth'
+import type { Session } from '../services/auth'
+
+type Snapshot = {
+  status: 'checking' | 'authenticated' | 'anonymous' | 'unavailable'
+  session: Session | null
+  busy: 'login' | 'logout' | null
+  error: string | null
+}
+
+let snapshot: Snapshot = { status: 'checking', session: null, busy: null, error: null }
+const listeners = new Set<() => void>()
+let revision = 0
+let checking: Promise<void> | null = null
+let lastCheckedAt = 0
+
+function publish(next: Snapshot) {
+  snapshot = next
+  for (const listener of listeners) listener()
+}
+
+function accept(session: Session) {
+  setCsrfToken(session.csrfToken)
+  lastCheckedAt = Date.now()
+  publish({ status: 'authenticated', session, busy: null, error: null })
+}
+
+onUnauthorized(() => {
+  revision++
+  lastCheckedAt = Date.now()
+  setCsrfToken(null)
+  publish({ status: 'anonymous', session: null, busy: null,
+    error: snapshot.busy === 'login' ? 'Oturum doğrulanamadı. Lütfen tekrar giriş yapın.' : null })
+})
+
+export const sessionStore = {
+  getSnapshot: () => snapshot,
+  subscribe(listener: () => void) {
+    listeners.add(listener)
+    return () => { listeners.delete(listener) }
+  },
+}
+
+export function checkSession({ quiet = false } = {}): Promise<void> {
+  if (snapshot.busy) return Promise.resolve()
+  if (checking) return checking
+  if (quiet && snapshot.status !== 'authenticated') return Promise.resolve()
+  if (quiet && Date.now() - lastCheckedAt < 30_000) return Promise.resolve()
+  const ticket = ++revision
+  publish({ ...snapshot, status: 'checking', error: null })
+  checking = (async () => {
+    try {
+      const session = await authApi.getSession()
+      if (ticket === revision) accept(session)
+    } catch (error) {
+      if (ticket !== revision) return
+      if (error instanceof ApiError && error.status === 401) {
+        setCsrfToken(null)
+        publish({ status: 'anonymous', session: null, busy: null, error: null })
+      } else {
+        // Preserve the last known session, but hide protected content until it can be verified.
+        publish({ ...snapshot, status: 'unavailable', error: error instanceof ApiError ? error.message : 'Bağlantınızı kontrol edip tekrar deneyin.' })
+      }
+    } finally { checking = null }
+  })()
+  return checking
+}
+
+export async function signIn(username: string, password: string): Promise<boolean> {
+  if (snapshot.busy) return false
+  const ticket = ++revision
+  publish({ ...snapshot, busy: 'login', error: null })
+  try {
+    const created = await authApi.login(username, password)
+    if (ticket !== revision) return false
+    setCsrfToken(created.csrfToken)
+    // Confirm the browser actually accepted its HttpOnly cookie before rendering protected pages.
+    const session = await authApi.getSession()
+    if (ticket !== revision) return false
+    accept(session)
+    return true
+  } catch (error) {
+    if (ticket === revision) {
+      setCsrfToken(null)
+      publish({ ...snapshot, busy: null,
+        error: error instanceof ApiError ? error.message : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.' })
+    }
+    return false
+  }
+}
+
+export async function signOut(): Promise<void> {
+  if (snapshot.busy || snapshot.status !== 'authenticated') return
+  const ticket = ++revision
+  publish({ ...snapshot, busy: 'logout', error: null })
+  try {
+    await authApi.logout()
+    if (ticket !== revision) return
+    setCsrfToken(null)
+    publish({ status: 'anonymous', session: null, busy: null, error: null })
+  } catch (error) {
+    if (ticket === revision) publish({ ...snapshot, busy: null,
+      error: error instanceof ApiError ? error.message : 'Çıkış tamamlanamadı. Lütfen tekrar deneyin.' })
+  }
+}

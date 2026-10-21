@@ -1,0 +1,66 @@
+/* Kaynak: AKCAT_DESIGN_SYSTEM.md — açık tema, v1.1 */
+:root {
+  --color-primary-700: #104b92;
+  --color-primary-600: #1456aa;
+  --color-primary-500: #1765c1;
+  --color-primary-100: #dcebff;
+  --color-primary-50: #eff6ff;
+  --color-primary: var(--color-primary-500);
+  --color-primary-hover: var(--color-primary-700);
+  --color-primary-active: var(--color-primary-600);
+  --color-primary-light: var(--color-primary-50);
+  --color-secondary-surface: #eaf3ff;
+
+  --color-background: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-row-alternate: #fafbfd;
+  --color-text: #1e293b;
+  --color-text-secondary: #526176;
+  --color-text-muted: #64748b;
+  --color-border: #dce4ed;
+  --color-border-strong: #cbd5e1;
+  --color-success: #15803d;
+  --color-success-surface: #f0fdf4;
+  --color-warning: #9a5600;
+  --color-warning-surface: #fff7e6;
+  --color-danger: #b42318;
+  --color-danger-surface: #fef3f2;
+  --color-info: var(--color-primary-600);
+  --color-info-surface: var(--color-primary-50);
+
+  --font-family: 'Inter', system-ui, sans-serif;
+  --font-size-page: 24px;
+  --font-size-section: 18px;
+  --font-size-card: 16px;
+  --font-size-body: 14px;
+  --font-size-label: 14px;
+  --font-size-help: 13px;
+  --font-size-caption: 12px;
+  --font-size-amount: 26px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --line-height: 1.6;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --border-default: var(--border-width) solid var(--color-border);
+  --control-height: 48px;
+  --touch-target: 44px;
+  --sidebar-width: 248px;
+  --drawer-width: 288px;
+  --color-overlay: rgb(30 41 59 / 28%);
+  --transition-fast: 140ms;
+}
