@@ -1,0 +1,74 @@
+.sale-form, .sale-record { display: grid; gap: var(--space-5); }
+.sale-form { max-width: 1000px; }
+.sale-picker { margin-top: var(--space-4); }
+.sale-picker-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-3); }
+.sale-options, .sale-lines, .sale-snapshot-items, .sale-payment-list { list-style: none; margin: var(--space-4) 0 0; padding: 0; }
+.sale-options li, .sale-selected, .sale-snapshot-items li, .sale-payment-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) 0; }
+.sale-options li + li, .sale-lines li, .sale-snapshot-items li + li, .sale-payment-list li + li { border-top: var(--border-default); }
+.sale-options li > div, .sale-selected > div, .sale-snapshot-items li > div, .sale-payment-list li > div { min-width: 0; overflow-wrap: anywhere; }
+.sale-options small, .sale-line-name small, .sale-line-total small, .sale-snapshot-items small, .sale-payment-list small { display: block; margin-top: var(--space-1); color: var(--color-text-secondary); }
+.sale-options .ui-button { flex-shrink: 0; }
+.sale-picker-pages, .sale-pagination > div { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.sale-picker-pages { justify-content: space-between; }
+.sale-selected { align-items: start; flex-wrap: wrap; }
+.sale-selected p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); white-space: pre-wrap; }
+.sale-lines li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); padding-block: var(--space-5); }
+.sale-line-name, .sale-lines .ui-field { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; }
+.sale-lines .ui-button { align-self: end; }
+.sale-line-total { min-width: 0; }
+.sale-line-total strong { display: block; margin-top: var(--space-2); }
+.sale-payment-fields, .sale-date-filters { display: grid; gap: var(--space-4); align-items: end; margin-top: var(--space-4); }
+.sale-totals { margin: var(--space-5) 0 0; display: grid; gap: var(--space-3); }
+.sale-totals > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
+.sale-totals dd { margin: 0; font-weight: var(--font-weight-semibold); }
+.sale-totals > div:last-child { padding-top: var(--space-3); border-top: var(--border-default); }
+.sale-credit { padding: var(--space-4); background: var(--color-primary-light); color: var(--color-primary-active); border-radius: var(--radius-md); }
+.sale-help { font-size: var(--font-size-help); color: var(--color-text-secondary); margin: var(--space-4) 0 0; }
+.sale-validation { color: var(--color-danger); margin-bottom: 0; }
+.sale-success { padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-success-surface); color: var(--color-success); margin: 0 0 var(--space-5); }
+.sale-details { display: grid; gap: var(--space-5); margin: var(--space-5) 0 0; }
+.sale-details > div { min-width: 0; }
+.sale-details dt { font-size: var(--font-size-help); color: var(--color-text-secondary); margin-bottom: var(--space-1); }
+.sale-details dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.sale-snapshot-items li, .sale-payment-list li { flex-wrap: wrap; }
+.sale-history-filters { margin-bottom: var(--space-6); }
+.sale-history-filters details { border-bottom: var(--border-default); padding-bottom: var(--space-3); }
+.sale-history-filters summary { cursor: pointer; min-height: var(--touch-target); padding-block: var(--space-3); color: var(--color-primary-active); }
+.sale-date-filters > .ui-button { justify-self: start; }
+.sale-list-surface { border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
+.sale-table, .sale-table tbody { display: block; width: 100%; }
+.sale-table { border-collapse: collapse; }
+.sale-table thead { display: none; }
+.sale-table tr { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.sale-table tr + tr { border-top: var(--border-default); }
+.sale-table td { min-width: 0; overflow-wrap: anywhere; }
+.sale-table td[data-label] { display: flex; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.sale-table td[data-label]::before { content: attr(data-label) ': '; color: var(--color-text-secondary); font-size: var(--font-size-help); }
+.sale-detail-link { display: inline-flex; align-items: center; min-height: var(--touch-target); color: var(--color-primary-active); text-decoration: underline; text-underline-offset: 3px; }
+.sale-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-5); }
+.sale-pagination p { color: var(--color-text-secondary); margin: 0; font-variant-numeric: tabular-nums; }
+@media (min-width: 640px) {
+  .sale-lines li { grid-template-columns: minmax(0, 1fr) 130px minmax(100px, auto) auto; align-items: center; }
+  .sale-line-name, .sale-lines .ui-field { grid-column: auto; }
+  .sale-line-total { text-align: right; }
+  .sale-payment-fields, .sale-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sale-date-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .sale-date-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+  .sale-table { display: table; table-layout: fixed; }
+  .sale-table thead { display: table-header-group; }
+  .sale-table tbody { display: table-row-group; }
+  .sale-table tr { display: table-row; }
+  .sale-table th, .sale-table td { display: table-cell !important; padding: var(--space-3); border-bottom: var(--border-default); vertical-align: middle; text-align: left; }
+  .sale-table th { color: var(--color-text-secondary); background: var(--color-row-alternate); font-size: var(--font-size-help); font-weight: var(--font-weight-medium); }
+  .sale-table tr:last-child td { border-bottom: 0; }
+  .sale-table td[data-label]::before { content: none; }
+  .sale-table .money { white-space: normal; overflow-wrap: anywhere; }
+  .sale-table th:nth-child(1) { width: 17%; }
+  .sale-table th:nth-child(2) { width: 19%; }
+  .sale-table th:nth-child(3), .sale-table th:nth-child(4), .sale-table th:nth-child(5) { width: 12%; }
+  .sale-table th:nth-child(6) { width: 15%; }
+  .sale-table th:nth-child(7) { width: 13%; }
+  .sale-table th:nth-child(n+3):nth-child(-n+5), .sale-table td:nth-child(n+3):nth-child(-n+5) { text-align: right; }
+}

@@ -1,0 +1,13 @@
+.corrections-page { display: grid; gap: var(--space-5); min-width: 0; }
+.correction-form { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.correction-target, .correction-details dd { overflow-wrap: anywhere; }
+.correction-details dd, .correction-list p, .correction-history p { white-space: pre-wrap; }
+.correction-list, .correction-history { list-style: none; padding: 0; margin: 0; }
+.correction-list li, .correction-history li { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border); min-width: 0; overflow-wrap: anywhere; }
+.correction-list li > div { display: flex; gap: var(--space-3); align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.correction-list small, .correction-history span { display: block; color: var(--color-text-secondary); }
+.correction-history p { margin-bottom: 0; }
+.correction-dialog { width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: auto; padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); color: var(--color-text); background: var(--color-surface); }
+.correction-dialog::backdrop { background: rgb(15 23 42 / 32%); }
+.correction-dialog h2 { margin-top: 0; }
+.correction-dialog p { overflow-wrap: anywhere; }

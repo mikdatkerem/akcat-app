@@ -18,7 +18,7 @@ export function OverviewPage({ role }: { role: Role }) {
         <div className="section-heading"><h2 id="workspace-title">Çalışma alanları</h2><p>İlgili alana geçerek başlayın.</p></div>
         <div className="workspace-links">
           {navigationForRole(role).filter(item => ['customers', 'sales', 'payments'].includes(item.id)).map(item => (
-            <a key={item.id} href={item.href} className="workspace-link">
+            <a key={item.id} href={item.id === 'sales' ? '#/yeni-satis' : item.href} className="workspace-link">
               <span className="workspace-link__icon"><Icon name={item.icon} /></span>
               <span><strong>{item.id === 'sales' ? 'Yeni Satış' : item.label}</strong><small>{item.id === 'customers' ? 'Müşteri kayıtları ve bilgileri' : item.id === 'sales' ? 'Satış kaydı çalışma alanı' : 'Ödeme ve tahsilat kayıtları'}</small></span>
               <Icon name="arrow" width="18" height="18" />
