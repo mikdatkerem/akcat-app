@@ -1,3 +1,5 @@
+import { rememberKey } from './pendingKey'
+import { RecoveryNotice } from './RecoveryNotice'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Button, Card, ErrorState, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -9,7 +11,7 @@ import { formatMoney, parsePriceToKurus } from '../utils/format'
 import { RecordPicker } from '../sales/RecordPicker'
 import { saleDate } from '../sales/presentation'
 import { CustomerAccount } from './CustomerAccount'
-import { paymentDraft, updatePaymentDraft, clearPaymentDraft } from './draft'
+import { paymentDraft, updatePaymentDraft, clearPaymentDraft, discardPaymentDraft } from './draft'
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'all' })
 
 export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { actor: string; initialCustomer?: Customer; initialSale?: SaleSummary; onSaved: (payment: Payment) => void }) {
@@ -43,6 +45,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
       }
       body = { customer_id: customer.id, sale_id: sale.id, amount_kurus: kurus, method }
     }
+    try { rememberKey(actor, 'payment', draft.key) } catch { setError('Tarayıcı işlem anahtarını koruyamadı. Kayıt gönderilmedi; önceki işlemi geçmişten kontrol edin ve tarayıcı ayarlarınızı inceleyin.'); return }
     updatePaymentDraft(actor, draft.key, { pending: body })
     sending.current = true; setPending(body); setBusy(true); setError('')
     try {
@@ -57,6 +60,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
   }
   return <>
     <PageHeader title="Yeni tahsilat" description="Alınan ödemeyi seçtiğiniz satışın borcuna işleyin." actions={<a className="ui-button ui-button--secondary" href="#/tahsilatlar">Tahsilat geçmişi</a>} />
+    {draft.recovered && <RecoveryNotice history="#/tahsilatlar" disabled={busy} discard={() => discardPaymentDraft(actor)} />}
     <form className="finance-form" onSubmit={save} noValidate aria-busy={busy}>
       <Card title="Müşteri">
         {customer ? <div className="finance-selected"><strong>{customer.name}</strong><Button variant="ghost" disabled={locked} onClick={() => { setCustomer(null); setSale(null) }}>Müşteriyi değiştir</Button></div>

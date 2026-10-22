@@ -11,3 +11,6 @@
 .correction-dialog::backdrop { background: rgb(15 23 42 / 32%); }
 .correction-dialog h2 { margin-top: 0; }
 .correction-dialog p { overflow-wrap: anywhere; }
+
+.refund-confirmation { display: flex; align-items: flex-start; gap: var(--space-2); overflow-wrap: anywhere; }
+.refund-confirmation input { flex-shrink: 0; margin-top: 0.25rem; }

@@ -80,7 +80,7 @@ try {
     const response = await fetch(base + path, { method: 'POST', headers: { 'X-Test-Key': key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     if (!response.ok) throw new Error('Isolated test setup failed.')
   }
-  await control('/__test/schema', { sql: await readFile(join(api, 'migrations/0001_initial_schema.sql'), 'utf8') })
+  await control('/__test/schema', { sql: (await Promise.all(['0001_initial_schema.sql', '0002_financial_adjustments.sql'].map(file => readFile(join(api, 'migrations', file), 'utf8')))).join('\n') })
   // One random fixture in temporary test D1 only. No admin, public seed or persistent account.
   const fixture = { id: randomUUID(), username: `browser_${randomBytes(6).toString('hex')}`, password: randomBytes(24).toString('base64url') }
   const now = new Date().toISOString()

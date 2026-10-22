@@ -1,3 +1,4 @@
+import { adjustmentLabels } from '../services/adjustments'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Select } from '../components/ui'
 import { listPayments, type PaymentFilter } from '../services/finance'
@@ -39,13 +40,13 @@ export function PaymentHistory({ customerId }: { customerId?: string }) {
       {result.data.data.length === 0 ? <EmptyState title="Tahsilat bulunamadı" description="İlk ödemeler ve sonradan tahsilatlar burada görüntülenir." />
         : <ul className="finance-history">{result.data.data.map(payment => <li key={payment.id}>
           <div className="finance-history-heading"><a className="finance-link" href={customerHref(payment.customer_id)}>{payment.customer_name}</a>
-            <Badge tone={payment.is_valid ? 'success' : 'neutral'}>{payment.reversal_of_payment_id ? 'Geçmiş ters kayıt' : !payment.is_valid ? 'Ters kayıtla kapatılmış' : payment.is_initial ? 'İlk ödeme' : 'Tahsilat'}</Badge></div>
+            <Badge tone={payment.is_valid ? 'success' : 'neutral'}>{payment.adjustment_kind ? (payment.reversal_of_payment_id ? adjustmentLabels[payment.adjustment_kind] : 'Düzeltmeyle kapatılmış tahsilat') : payment.reversal_of_payment_id ? 'Geçmiş ters kayıt' : !payment.is_valid ? 'Ters kayıtla kapatılmış' : payment.is_initial ? 'İlk ödeme' : 'Tahsilat'}</Badge></div>
           <dl><div><dt>Tutar</dt><dd className="money">{formatMoney(payment.amount_kurus)}</dd></div>
             <div><dt>Yöntem</dt><dd>{methodLabels[payment.method]}</dd></div><div><dt>İşlemi yapan</dt><dd>{payment.created_by_username}</dd></div>
             <div><dt>Tarih</dt><dd>{saleDate(payment.created_at)}</dd></div>
             <div><dt>Güncel satış borcu</dt><dd className="money">{payment.sale_remaining_kurus === null ? 'Satışa bağlı değil' : formatMoney(payment.sale_remaining_kurus)}</dd></div></dl>
           {payment.sale_id && <a className="finance-link" href={saleHref(payment.sale_id)}>İlgili satışı görüntüle</a>}
-          <a className="finance-link" href={correctionHref('payment', payment.id)}>Tahsilat için düzeltme talebi</a>
+          {payment.is_valid && <a className="finance-link" href={correctionHref('payment', payment.id)}>Tahsilat için düzeltme talebi</a>}
         </li>)}</ul>}
       <Pagination page={result.data.pagination} label="Tahsilat sayfaları" onPage={setPage} />
     </>}

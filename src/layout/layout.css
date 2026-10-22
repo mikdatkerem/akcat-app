@@ -28,6 +28,7 @@
 .sidebar-link:hover { background: var(--color-surface-muted); }
 .sidebar-link[aria-current='page'] { background: var(--color-primary-100); color: var(--color-primary-active); font-weight: var(--font-weight-semibold); }
 .sidebar-link__indicator { width: 6px; height: 6px; margin-inline-start: auto; border-radius: var(--radius-pill); background: var(--color-primary); }
+.sidebar-divider { border-top: var(--border-default); margin: var(--space-3) var(--space-4); }
 .sidebar-footer { margin-top: auto; padding: var(--space-6) var(--space-8); font-size: var(--font-size-help); color: var(--color-text-secondary); }
 .account-actions { display: grid; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-default); }
 .account-details { display: grid; gap: var(--space-1); min-width: 0; }

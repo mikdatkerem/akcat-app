@@ -1,3 +1,5 @@
+import { FinancialApproval } from './FinancialApproval'
+import { FinancialResult } from './FinancialResult'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -16,7 +18,8 @@ function CorrectionDetail({ id, actor, role, saved }: { id: string; actor: strin
   const [action, setAction] = useState<'approve' | 'reject' | null>(null), [success, setSuccess] = useState('')
   if (!result) return <LoadingState label="Talep yükleniyor…" />
   if (result.error || !result.data) return <ErrorState title="Talep yüklenemedi" description={result.error ?? 'Tekrar deneyin.'} onRetry={retry} />
-  const row = result.data
+  const row = result.data, financial = row.correction_type === 'payment_reversal' || row.correction_type === 'payment_refund'
+  const done = () => { setSuccess(action === 'reject' ? 'Talep reddedildi.' : financial ? 'Finansal düzeltme kaydedildi; para transferi yapılmadı.' : 'Talep onaylandı ve satış iptal edildi.'); setAction(null); retry() }
   return <>
     {(saved || success) && <p role="status" className="sale-success">{success || 'Düzeltme talebi kaydedildi. Yönetici incelemesi bekleniyor.'}</p>}
     <Card title={typeLabels[row.correction_type] ?? 'Düzeltme talebi'} accessory={<Badge tone={row.status === 'approved' ? 'success' : row.status === 'rejected' ? 'neutral' : 'warning'}>{statusLabels[row.status]}</Badge>}>
@@ -28,15 +31,17 @@ function CorrectionDetail({ id, actor, role, saved }: { id: string; actor: strin
       </dl>
       <a className="text-link" href={row.target_type === 'sale' ? '#/satislar/' + row.target_id : '#/tahsilatlar'}>İlgili işlemi görüntüle</a>
       <p className="sale-help">{row.approval_explanation}</p>
+      <FinancialResult row={row} />
       {role === 'admin' && row.status === 'pending' && <>
         {!action ? <div className="finance-actions">
-          {row.can_approve && <Button onClick={() => setAction('approve')}>İptali İncele ve Onayla</Button>}
+          {row.can_approve && <Button onClick={() => setAction('approve')}>{financial ? 'Finansal Düzeltmeyi İncele' : 'İptali İncele ve Onayla'}</Button>}
           <Button variant="secondary" onClick={() => setAction('reject')}>Talebi Reddet</Button>
-        </div> : <section aria-label={action === 'approve' ? 'İptal onayı' : 'Talep reddi'}>
+        </div> : <section aria-label={action === 'approve' ? (financial ? 'Finansal düzeltme onayı' : 'İptal onayı') : 'Talep reddi'}>
+          {action === 'approve' && financial ? <FinancialApproval row={row} actor={actor} onSaved={done} onClose={() => setAction(null)} /> : <>
           <p>{action === 'approve' ? 'Onaylandığında satış iptal edilir ve güncel borcu kapatılır. Asıl kayıtlar korunur.' : 'Ret kararı finansal kayıtları değiştirmez.'}</p>
           <ReasonForm key={action} actor={actor} scope={action + ':' + id} label={action === 'approve' ? 'İptali Uygula ve Onayla' : 'Reddi Kaydet'} danger={action === 'approve'}
             send={(body, key) => reviewCorrection(id, action, body, key)} onClose={() => setAction(null)}
-            onSaved={() => { setSuccess(action === 'approve' ? 'Talep onaylandı ve satış iptal edildi.' : 'Talep reddedildi.'); setAction(null); retry() }} />
+            onSaved={done} /></>}
         </section>}
       </>}
     </Card>

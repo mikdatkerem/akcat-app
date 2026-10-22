@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:format": "node --experimental-strip-types --test tests/format.test.mjs",
+    "test:config": "node --experimental-strip-types --test tests/api-origin.test.mjs",
+    "test:audit:browser": "node tests/run-auth.mjs --suite audit",
     "test:sales:math": "node --experimental-strip-types --test tests/sales-math.test.mjs",
     "test:auth:serve": "node --experimental-strip-types tests/serve-auth.mjs",
     "test:auth:browser": "node tests/run-auth.mjs",
@@ -16,6 +18,8 @@
     "test:sales:browser": "node tests/run-auth.mjs --suite sales",
     "test:finance:browser": "node tests/run-auth.mjs --suite finance",
     "test:corrections:browser": "node tests/run-auth.mjs --suite corrections",
+    "test:reports:browser": "node tests/run-auth.mjs --suite reports",
+    "test:adjustments:browser": "node tests/run-auth.mjs --suite adjustments",
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types"

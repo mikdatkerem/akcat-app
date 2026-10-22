@@ -1,3 +1,4 @@
+import { AdjustmentHistory } from '../finance/AdjustmentHistory'
 import { useCallback } from 'react'
 import { Badge, Card, ErrorState, LoadingState } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -52,9 +53,11 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
           : <ul className="sale-payment-list" aria-label="Geçerli ödeme hareketleri">{sale.payments.map(payment => <li key={payment.id}>
             <div><strong>{payment.is_initial ? 'İlk ödeme' : 'Ödeme'} · {methodLabels[payment.method]}</strong>
               <small>{saleDate(payment.created_at)} · {payment.created_by_username}</small></div><span className="money">{formatMoney(payment.amount_kurus)}</span>
+          <a className="text-link" href={correctionHref('payment', payment.id)}>Tahsilat düzeltmesi / iade talebi</a>
           </li>)}</ul>}
       </Card>
     </div>
+    <AdjustmentHistory filter={{ sale_id: sale.id }} />
     <Card title="İptal ve düzeltme">
       <CancelSale sale={sale} actor={actor} onSaved={retry} />
       <div className="finance-actions"><a className="text-link" href={correctionHref('sale', sale.id)}>Düzeltme Talebi Oluştur</a></div>

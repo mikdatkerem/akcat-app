@@ -1,3 +1,5 @@
+import { rememberKey } from '../finance/pendingKey'
+import { RecoveryNotice } from '../finance/RecoveryNotice'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Button, Card, ErrorState, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -8,7 +10,7 @@ import { ApiError } from '../services/apiClient'
 import { formatMoney, parsePriceToKurus } from '../utils/format'
 import { RecordPicker } from './RecordPicker'
 import { lineTotal, quantityValue, sumLines } from './math'
-import { clearSaleDraft, saleDraft, updateSaleDraft } from './draft'
+import { clearSaleDraft, discardSaleDraft, saleDraft, updateSaleDraft } from './draft'
 
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'active' })
 const products = (q: string, page: number) => listProducts({ q, page, pageSize: 5, status: 'active' })
@@ -51,6 +53,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
       body = { customer_id: customer.id, items: lines.map(line => ({ product_id: line.product.id, quantity: quantityValue(line.quantity) })),
         payment: { amount_kurus: paid, method: paid > 0 ? method as PaymentMethod : null } }
     }
+    try { rememberKey(actor, 'sale', key.current) } catch { setError('Tarayıcı işlem anahtarını koruyamadı. Kayıt gönderilmedi; önceki işlemi geçmişten kontrol edin ve tarayıcı ayarlarınızı inceleyin.'); return }
     updateSaleDraft(actor, draft.key, { pending: body })
     sending.current = true; setBusy(true); setError(''); setPending(body)
     try {
@@ -67,6 +70,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
   return <>
     <PageHeader title="Yeni Satış" description="Kaydettiğiniz satış, teslimatın gerçekleştiğini belirtir."
       actions={<a className="ui-button ui-button--secondary" href="#/satislar">Satış geçmişi</a>} />
+    {draft.recovered && <RecoveryNotice history="#/satislar" disabled={busy} discard={() => discardSaleDraft(actor)} />}
     <form className="sale-form" onSubmit={save} noValidate aria-busy={busy}>
       <Card title="Müşteri">
         {customer ? <div className="sale-selected"><div><strong>{customer.name}</strong><p>{customer.address}</p></div>

@@ -15,12 +15,13 @@ import { SalesPage } from './sales/SalesPage'
 import { PaymentsPage } from './finance/PaymentsPage'
 import { ReceivablesPage } from './finance/ReceivablesPage'
 import { CorrectionsPage } from './corrections/CorrectionsPage'
+import { ReportsPage } from './reports/ReportsPage'
 import './App.css'
 
 function App() {
   const page = usePage()
   const auth = useSession()
-  const title = page === 'overview' ? 'Genel Bakış' : page === 'customers' ? 'Müşteriler' : page === 'products' ? 'Ürünler' : page === 'sales' ? 'Satışlar' : page === 'payments' ? 'Tahsilatlar' : page === 'credit' ? 'Veresiye' : page === 'corrections' ? 'Düzeltme Talepleri' : page === 'menu' ? 'Menü' : 'Sayfa bulunamadı'
+  const title = page === 'overview' ? 'Genel Bakış' : page === 'customers' ? 'Müşteriler' : page === 'products' ? 'Ürünler' : page === 'sales' ? 'Satışlar' : page === 'payments' ? 'Tahsilatlar' : page === 'credit' ? 'Veresiye' : page === 'corrections' ? 'Düzeltme Talepleri' : page === 'reports' ? 'Raporlar' : page === 'menu' ? 'Menü' : 'Sayfa bulunamadı'
 
   if (auth.status === 'checking') return <AuthScreen title="Oturum kontrol ediliyor"><LoadingState label="Lütfen bekleyin…" /></AuthScreen>
   if (auth.status === 'unavailable') return <AuthScreen title="Oturum kontrol edilemedi">
@@ -41,7 +42,7 @@ function App() {
         <PageHeader title={title} description="Bu adres için bir çalışma alanı bulunamadı." />
         <ErrorState title="Sayfa bulunamadı" description="Menüden bir çalışma alanı seçerek devam edebilirsiniz." />
         <a className="text-link" href="#/genel-bakis">Genel Bakış’a dön</a>
-      </> : page === 'customers' ? <CustomersPage role={user.role} /> : page === 'products' ? <ProductsPage role={user.role} /> : page === 'sales' ? <SalesPage userId={user.id} role={user.role} /> : page === 'payments' ? <PaymentsPage userId={user.id} /> : page === 'credit' ? <ReceivablesPage /> : page === 'corrections' ? <CorrectionsPage actor={user.id} role={user.role} /> : null}
+      </> : page === 'customers' ? <CustomersPage role={user.role} /> : page === 'products' ? <ProductsPage role={user.role} /> : page === 'sales' ? <SalesPage userId={user.id} role={user.role} /> : page === 'payments' ? <PaymentsPage userId={user.id} /> : page === 'credit' ? <ReceivablesPage /> : page === 'corrections' ? <CorrectionsPage actor={user.id} role={user.role} /> : page === 'reports' ? <ReportsPage role={user.role} /> : null}
     </AppLayout>
   )
 }

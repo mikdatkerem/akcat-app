@@ -1,3 +1,5 @@
+import { verifyAudit } from './audit.browser.mjs'
+import { verifyAdjustments } from './adjustments.browser.mjs'
 import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -7,6 +9,7 @@ import { verifyProducts } from './products.browser.mjs'
 import { verifySales } from './sales.browser.mjs'
 import { verifyFinance } from './finance.browser.mjs'
 import { verifyCorrections } from './corrections.browser.mjs'
+import { verifyReports } from './reports.browser.mjs'
 
 const { values } = parseArgs({ options: { metadata: { type: 'string' }, 'playwright-dir': { type: 'string' }, channel: { type: 'string', default: 'chrome' }, suite: { type: 'string', default: 'auth' } } })
 if (!values.metadata) throw new Error('--metadata must point to the isolated serve-auth environment metadata.')
@@ -16,7 +19,7 @@ const { chromium } = require('playwright')
 const browser = await chromium.launch({ channel: values.channel, headless: true })
 try {
   const page = await browser.newPage()
-  const suites = { auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections }
+  const suites = { auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections, reports: verifyReports, adjustments: verifyAdjustments, audit: verifyAudit }
   if (!Object.hasOwn(suites, values.suite)) throw new Error('Unknown test suite.')
   const result = await suites[values.suite](page, resolve(values.metadata))
   console.log(JSON.stringify(result, null, 2))

@@ -6,7 +6,7 @@ import { typeLabels } from './presentation'
 
 export function CorrectionForm({ actor, target, id, onSaved }: { actor: string; target: 'sale' | 'payment'; id: string; onSaved: (id: string) => void }) {
   const operation = useOperation<CorrectionInput>(actor, 'create:' + target + ':' + id, async (body, key) => { const result = await createCorrection(body, key); onSaved(result.id) })
-  const [type, setType] = useState<CorrectionType>(() => operation.saved?.correction_type ?? (target === 'sale' ? 'sale_cancel' : 'payment_amount'))
+  const [type, setType] = useState<CorrectionType>(() => operation.saved?.correction_type ?? (target === 'sale' ? 'sale_cancel' : 'payment_reversal'))
   const [reason, setReason] = useState(() => operation.saved?.reason ?? ''), [change, setChange] = useState(() => operation.saved?.requested_change ?? '')
   const [validation, setValidation] = useState('')
   const locked = operation.busy || !!operation.saved
@@ -19,7 +19,7 @@ export function CorrectionForm({ actor, target, id, onSaved }: { actor: string; 
   return <Card title="Düzeltilecek işlem">
     <p className="correction-target">{target === 'sale' ? 'Satış' : 'Tahsilat'} · {id}</p>
     <a className="text-link" href={target === 'sale' ? '#/satislar/' + id : '#/tahsilatlar'}>İlgili kaydı görüntüle</a>
-    <p className="sale-help">Talep oluşturmak finansal kayıtları değiştirmez. Bu sürümde yalnızca ödemesiz satış iptali yönetici tarafından uygulanabilir.</p>
+    <p className="sale-help">Talep oluşturmak finansal kayıtları değiştirmez. Tam hatalı tahsilat ters kaydı veya fiilen yapılmış harici iade admin tarafından uygulanabilir. Ödemeli satış, bütün ödemeleri bu süreçlerle kapatıldıktan sonra ayrı taleple iptal edilebilir. Tutar/yöntem değiştirme ve kısmi düzeltme desteklenmez.</p>
     <form className="correction-form" onSubmit={submit}>
       <Select label="Düzeltme türü" value={type} disabled={locked} onChange={event => setType(event.target.value as CorrectionType)}>
         {Object.entries(typeLabels).filter(([key]) => key.startsWith(target + '_')).map(([key, label]) => <option key={key} value={key}>{label}</option>)}

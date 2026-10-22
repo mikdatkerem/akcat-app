@@ -26,11 +26,14 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string) {
+  if (code === 'INVALID_REPORT_INPUT') return new ApiError(status, code, 'Rapor dönemini, tarih aralığını, aramayı ve sayfalamayı kontrol edin.')
   const correctionErrors: Record<string, string> = {
     INVALID_CORRECTION_INPUT: 'Hedef kaydı, düzeltme türünü, gerekçeyi ve istenen değişikliği kontrol edin.',
     CORRECTION_NOT_FOUND: 'Düzeltme talebi bulunamadı.', CORRECTION_TARGET_NOT_FOUND: 'Düzeltilecek kayıt bulunamadı.',
     CORRECTION_NOT_PENDING: 'Talep artık beklemiyor. Güncel talep durumunu kontrol edin.',
-    CORRECTION_UNSUPPORTED: 'Bu düzeltme onaylanamaz. Yalnızca hiç ödeme kaydı olmayan satışın iptali destekleniyor; diğer işlemler ters kayıt ve gerekiyorsa iade süreci gerektirir.',
+    FINANCIAL_PREVIEW_REQUIRED: 'Güncel tutarı ve bakiyeleri inceleyerek onaylayın.',
+    FINANCIAL_ADJUSTMENT_DENIED: 'İşlem uygulanmadı. Güncel talep, ödeme ve bakiyeleri yeniden yükleyin; harici iadenin teyidi ile referansını kontrol edin. Kısmi veya ikinci tam ters kayıt desteklenmez.',
+    CORRECTION_UNSUPPORTED: 'Talep uygulanamıyor. Önce tüm ödemeleri teyitli iade veya hatalı kayıt ters kaydıyla kapatın. Kısmi düzeltme ve doğrudan tutar/yöntem değişikliği desteklenmez.',
     SALE_CANCELLATION_DENIED: 'Satış iptal edilemedi. Hiç ödeme kaydı bulunmamalı; çalışan yalnızca kendi satışını ilk beş dakika içinde iptal edebilir. Güncel kaydı kontrol edin veya düzeltme talebi oluşturun.',
   }
   if (correctionErrors[code]) return new ApiError(status, code, correctionErrors[code])
