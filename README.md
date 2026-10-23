@@ -2,6 +2,8 @@
 
 React + TypeScript + Vite arayüzüdür. Bağımsız API `akcat-api` projesindedir; web D1’e doğrudan erişmez.
 
+Admin'e özel `#/calisanlar` modülü hesap listesi/arama, oluşturma/detay/düzenleme, aktiflik/rol ve onaylı parola sıfırlama içerir. Employee menüye veya doğrudan adrese erişemez; API ayrıca admin yetkisi uygular. Parolalar yalnızca maskeli form belleğindedir; kalıcı depoya veya listeye yazılmaz. Sözleşme ve sınırlar: [Kullanıcı yönetimi](../akcat-api/docs/USERS.md). İzole tarayıcı komutu: `npm.cmd run test:users:browser -- --metadata <browser.json> --playwright-dir <kurulu-Playwright-dizini>`.
+
 Müşteri ve satış detayındaki “Yol Tarifi Al” eylemi, kayıtlı adresi kullanıcı tıklamasıyla Google Maps'e açar. Ortak bileşen, gizlilik, masaüstü/mobil davranışı ve gelecekteki native deep link/fallback planı: [Yol tarifi entegrasyonu](docs/DIRECTIONS.md).
 
 ## Yerel geliştirme
@@ -152,6 +154,8 @@ Talep detayında asıl tahsilat, tam tutar, önce/beklenen sonra bakiye ve uygul
 İzole yeni ortamda `npm.cmd run test:adjustments:browser -- --metadata <browser.json> --playwright-dir <kurulu Playwright dizini>` gerçek API akışını çalıştırır; sonrasında Enter ile ortam temizlenir. Gerçek ortam kullanılmadan önce API operatörü `0002_financial_adjustments.sql` migration’ını ayrıca uygulamalıdır; bu görevde yalnızca geçici test D1 kullanılmıştır.
 
 ## Üretim denetimi
+
+`#/hesabim` her iki rol için sidebar kullanıcı alanında ve mobil drawer'da bulunur. `src/account/AccountPage.tsx` gerçek `/auth/me` bilgileriyle ortak bileşenleri kullanır. Parola değişikliği mevcut cookie/CSRF istemcisinden yapılır; başarılı yanıtta bellek temizlenir ve giriş ekranı açılır. Belirsiz yanıtta otomatik tekrar yapılmaz; açık oturum kontrolü sunulur. `test:account:browser` diğer tarayıcı testleri gibi **yeni** geçici `test:auth:serve` ortamında çalıştırılır; sonunda Enter ile kapatılır. Sözleşme: [Hesabım](../akcat-api/docs/ACCOUNT.md).
 
 API origin’i `src/config/apiOrigin.ts` ile hem Vite build öncesinde hem istemcide doğrulanır. Üretim HTTP/loopback ve origin dışı URL’leri reddeder; boş adres üretim route’u gerektirir. `test:config` bu kuralları, `test:audit:browser` kayıp yanıt/yenileme/aynı UUID/çatışma/depolama engeli, XSS metin kaçışı ve 320/390/768/1024/1440 px iş akışını gerçek izole API ile doğrular. `src/finance/pendingKey.ts` yalnızca opak UUID’yi saklar; ayrı yeni finansal işlem `RecoveryNotice` ile geçmiş kontrolü teyidi ister.
 

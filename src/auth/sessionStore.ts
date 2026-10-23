@@ -7,6 +7,7 @@ type Snapshot = {
   session: Session | null
   busy: 'login' | 'logout' | null
   error: string | null
+  notice?: string
 }
 
 let snapshot: Snapshot = { status: 'checking', session: null, busy: null, error: null }
@@ -103,4 +104,13 @@ export async function signOut(): Promise<void> {
     if (ticket === revision) publish({ ...snapshot, busy: null,
       error: error instanceof ApiError ? error.message : 'Çıkış tamamlanamadı. Lütfen tekrar deneyin.' })
   }
+}
+
+// Only call after the server confirmed the atomic change and revoked every session.
+export function passwordChanged() {
+  revision++
+  lastCheckedAt = Date.now()
+  setCsrfToken(null)
+  publish({ status: 'anonymous', session: null, busy: null, error: null,
+    notice: 'Parolanız değiştirildi ve tüm oturumlarınız kapatıldı. Yeni parolanızla giriş yapın.' })
 }

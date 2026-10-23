@@ -3,7 +3,7 @@ import { Button, ErrorState, Input } from '../components/ui'
 import { signIn } from './sessionStore'
 import { AuthScreen } from './AuthScreen'
 
-export function LoginPage({ busy, error }: { busy: boolean; error: string | null }) {
+export function LoginPage({ busy, error, notice }: { busy: boolean; error: string | null; notice?: string }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [visible, setVisible] = useState(false)
@@ -28,6 +28,7 @@ export function LoginPage({ busy, error }: { busy: boolean; error: string | null
   return (
     <AuthScreen title="Giriş yapın">
       <p className="auth-description">Çalışma alanınıza erişmek için giriş yapın.</p>
+      {notice && <p className="auth-description" role="status">{notice}</p>}
       <form className="login-form" onSubmit={submit} noValidate aria-busy={busy}>
         <Input ref={usernameRef} id="login-username" name="username" label="Kullanıcı adı" required
           autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={128}

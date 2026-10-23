@@ -1,0 +1,6 @@
+.account-content { display: grid; gap: var(--space-5); max-width: 760px; }
+.account-summary { display: grid; gap: var(--space-4); }
+.account-summary dt { color: var(--color-text-secondary); }
+.account-summary dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
+.account-password-form { display: grid; gap: var(--space-4); }
+@media (min-width: 640px) { .account-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

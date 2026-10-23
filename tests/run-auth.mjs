@@ -1,5 +1,7 @@
 import { verifyAudit } from './audit.browser.mjs'
 import { verifyDirections } from './directions.browser.mjs'
+import { verifyUsers } from './users.browser.mjs'
+import { verifyAccount } from './account.browser.mjs'
 import { verifyAdjustments } from './adjustments.browser.mjs'
 import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
@@ -20,8 +22,13 @@ const { chromium } = require('playwright')
 const browser = await chromium.launch({ channel: values.channel, headless: true })
 try {
   const page = await browser.newPage()
-  const suites = { auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections, reports: verifyReports, adjustments: verifyAdjustments, audit: verifyAudit, directions: verifyDirections }
+  const suites = { auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections, reports: verifyReports, adjustments: verifyAdjustments, audit: verifyAudit, directions: verifyDirections, users: verifyUsers, account: verifyAccount }
   if (!Object.hasOwn(suites, values.suite)) throw new Error('Unknown test suite.')
   const result = await suites[values.suite](page, resolve(values.metadata))
   console.log(JSON.stringify(result, null, 2))
+} catch (error) {
+  // Playwright action logs can echo password input on failures. Do not forward raw errors.
+  const message = error instanceof Error ? error.message : 'Browser verification failed.'
+  console.error(message.replace(/fill\([\s\S]*?\)/g, 'fill([redacted])'))
+  process.exitCode = 1
 } finally { await browser.close() }

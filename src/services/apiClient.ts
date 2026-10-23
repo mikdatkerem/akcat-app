@@ -26,6 +26,15 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string, method: string) {
+  const passwordErrors: Record<string, string> = {
+    INVALID_PASSWORD_INPUT: 'Mevcut parolayı ve yeni parola politikasını kontrol edin. Yeni parola 15–128 karakter olmalı.',
+    CURRENT_PASSWORD_INVALID: 'Mevcut parolanız hatalı.', PASSWORD_UNCHANGED: 'Yeni parola mevcut parolanızdan farklı olmalı.',
+    PASSWORD_CHANGE_CONFLICT: 'Hesap veya oturum bu sırada değişti. Oturumunuzu kontrol edip yeniden deneyin.',
+    PASSWORD_CHANGE_RATE_LIMITED: 'Çok fazla parola değiştirme denemesi. Bir dakika sonra tekrar deneyin.',
+  }
+  if (passwordErrors[code]) return new ApiError(status, code, passwordErrors[code])
+  const userErrors: Record<string, string> = { INVALID_USER_INPUT: 'Kullanıcı adını, rolü ve parolayı kontrol edin. Parola 15–128 karakter olmalı.', USER_NOT_FOUND: 'Kullanıcı bulunamadı.', USERNAME_TAKEN: 'Bu kullanıcı adı zaten kullanılıyor.', SELF_ACCOUNT_LOCKOUT: 'Kendi hesabınızı pasife alamaz veya admin rolünüzü düşüremezsiniz.', LAST_ACTIVE_ADMIN: 'Son aktif admin hesabı korunmalıdır. Kullanıcıyı yeniden yükleyin.' }
+  if (userErrors[code]) return new ApiError(status, code, userErrors[code])
   if (code === 'DATABASE_SCHEMA_REQUIRED') return new ApiError(status, code, 'Veritabanı güncellemesi gerekli. Sistem yöneticinizle iletişime geçin. Boş geçmiş veya başarılı kayıt olarak değerlendirmeyin.')
   if (code === 'INVALID_REPORT_INPUT') return new ApiError(status, code, 'Rapor dönemini, tarih aralığını, aramayı ve sayfalamayı kontrol edin.')
   const correctionErrors: Record<string, string> = {

@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import type { IconName } from '../components/ui/Icon'
 import type { Role } from '../services/auth'
 
-export type PageId = 'overview' | 'customers' | 'sales' | 'payments' | 'credit' | 'products' | 'corrections' | 'reports' | 'menu'
+export type PageId = 'overview' | 'customers' | 'sales' | 'payments' | 'credit' | 'products' | 'corrections' | 'reports' | 'users' | 'account' | 'menu'
 type NavigationItem = { id: PageId; label: string; href: string; icon: IconName; roles?: readonly Role[] }
 
 export const navigation: NavigationItem[] = [
@@ -14,6 +14,7 @@ export const navigation: NavigationItem[] = [
   { id: 'products', label: 'Ürünler', href: '#/urunler', icon: 'products' },
   { id: 'corrections', label: 'Düzeltme Talepleri', href: '#/duzeltmeler', icon: 'refresh' },
   { id: 'reports', label: 'Raporlar', href: '#/raporlar', icon: 'credit' },
+  { id: 'users', label: 'Çalışanlar', href: '#/calisanlar', icon: 'customers', roles: ['admin'] },
 ]
 
 export const menuItem: NavigationItem = { id: 'menu', label: 'Menü', href: '#/menu', icon: 'menu' }
@@ -24,7 +25,7 @@ export function navigationForRole(role: Role) {
 }
 
 export function canAccessPage(page: PageId | 'not-found', role: Role) {
-  if (page === 'menu' || page === 'not-found') return true
+  if (page === 'menu' || page === 'account' || page === 'not-found') return true
   return navigationForRole(role).some(item => item.id === page)
 }
 
@@ -36,12 +37,14 @@ function subscribe(callback: () => void) {
 function getSnapshot(): PageId | 'not-found' {
   const hash = window.location.hash.split('?')[0].replace(/\/$/, '')
   if (!hash || hash === '#') return 'overview'
+  if (hash === '#/hesabim') return 'account'
   if (/^#\/musteriler\/(?:yeni|[a-f0-9-]{36}(?:\/duzenle)?)$/i.test(hash)) return 'customers'
   if (/^#\/urunler\/(?:yeni|[a-f0-9-]{36}(?:\/duzenle)?)$/i.test(hash)) return 'products'
   if (hash === '#/yeni-satis' || /^#\/satislar\/(?:yeni|[a-f0-9-]{36})$/i.test(hash)) return 'sales'
   if (hash === '#/tahsilatlar/yeni') return 'payments'
   if (/^#\/duzeltmeler\/(?:yeni|[a-f0-9-]{36})$/i.test(hash)) return 'corrections'
   if (/^#\/raporlar\/(?:tahsilatlar|satislar|borclar|calisanlar)$/i.test(hash)) return 'reports'
+  if (/^#\/calisanlar\/(?:yeni|[a-f0-9-]{36}(?:\/(?:duzenle|parola))?)$/i.test(hash)) return 'users'
   return [...navigation, menuItem].find(item => item.href === hash)?.id ?? 'not-found'
 }
 

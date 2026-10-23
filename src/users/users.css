@@ -1,0 +1,31 @@
+.user-form-panel { max-width: 760px; }
+.user-form, .user-filters { display: grid; gap: var(--space-4); }
+.user-form { margin-block-start: var(--space-4); }
+.user-filters { margin-block-end: var(--space-5); align-items: end; }
+.user-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-4); }
+.user-help { margin: 0; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.user-success { padding: var(--space-4); color: var(--color-success); background: var(--color-success-surface); border-radius: var(--radius-md); }
+.user-details { display: grid; gap: var(--space-4); }
+.user-details dt { color: var(--color-text-secondary); font-size: var(--font-size-help); }
+.user-details dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
+.user-list-surface { border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
+.user-table, .user-table tbody { display: block; width: 100%; }
+.user-table { border-collapse: collapse; }
+.user-table thead { display: none; }
+.user-table tr { display: grid; gap: var(--space-3); padding: var(--space-4); border-bottom: var(--border-default); }
+.user-table tr:last-child { border: 0; }
+.user-table td { min-width: 0; overflow-wrap: anywhere; }
+.user-table td[data-label]::before { content: attr(data-label) ': '; color: var(--color-text-secondary); }
+.user-dialog { width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: auto; padding: var(--space-5); border: var(--border-default); border-radius: var(--radius-lg); color: var(--color-text); background: var(--color-surface); }
+.user-dialog::backdrop { background: rgb(15 23 42 / 32%); }
+.user-dialog h2 { margin-top: 0; }
+@media (min-width: 640px) { .user-filters { grid-template-columns: minmax(0,1fr) minmax(140px,180px) auto; } .user-details { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (min-width: 1200px) {
+  .user-table { display: table; table-layout: fixed; }
+  .user-table thead { display: table-header-group; }
+  .user-table tbody { display: table-row-group; }
+  .user-table tr { display: table-row; }
+  .user-table th, .user-table td { display: table-cell; padding: var(--space-4); text-align: left; border-bottom: var(--border-default); }
+  .user-table th { background: var(--color-row-alternate); }
+  .user-table td[data-label]::before { content: none; }
+}

@@ -164,7 +164,7 @@ export function AppLayout({ page, title, children, user, signingOut, onSignOut }
         </div>
         <div className="sidebar-caption">ÇALIŞMA ALANI</div>
         <NavigationLinks page={page} label="Mobil navigasyon" role={user.role} onNavigate={navigateFromDrawer} />
-        <div className="sidebar-footer"><AccountActions user={user} busy={signingOut} onSignOut={() => {
+        <div className="sidebar-footer"><AccountActions user={user} busy={signingOut} onNavigate={navigateFromDrawer} onSignOut={() => {
           setDrawerOpen(false)
           onSignOut()
         }} /></div>

@@ -28,3 +28,20 @@ export async function logout() {
     throw new ApiError(0, 'INVALID_RESPONSE', 'Çıkış işlemi doğrulanamadı. Oturumunuzu tekrar kontrol edin.')
   }
 }
+
+export type Account = User & { is_active: boolean }
+export async function getAccount(): Promise<Account> {
+  const data = await apiRequest('/api/v1/auth/me')
+  const session = readSession(data)
+  if (typeof data !== 'object' || data === null || !('is_active' in data) || typeof data.is_active !== 'boolean') {
+    throw new ApiError(0, 'INVALID_RESPONSE', 'Hesap durumu doğrulanamadı. Lütfen tekrar deneyin.')
+  }
+  return { ...session.user, is_active: data.is_active }
+}
+
+export async function changePassword(current_password: string, new_password: string) {
+  const data = await apiRequest('/api/v1/auth/change-password', { method: 'POST', body: { current_password, new_password } })
+  if (typeof data !== 'object' || data === null || !('success' in data) || data.success !== true) {
+    throw new ApiError(0, 'INVALID_RESPONSE', 'Parola değişikliğinin sonucu doğrulanamadı.')
+  }
+}
