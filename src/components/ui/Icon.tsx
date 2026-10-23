@@ -11,6 +11,7 @@ const paths = {
   close: <path d="m6 6 12 12M18 6 6 18" />,
   droplet: <path d="M12 2C9 6 5 10 5 14a7 7 0 0 0 14 0c0-4-4-8-7-12Z" />,
   arrow: <path d="m9 5 7 7-7 7" />,
+  navigation: <path d="m21 3-6 18-4-8-8-4 18-6Z" />,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7h.01" /></>,
   check: <><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></>,
   alert: <><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></>,

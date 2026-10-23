@@ -4,6 +4,7 @@ import { Badge, Card, ErrorState, LoadingState } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { getSale, type Sale, type SaleSummary } from '../services/sales'
 import { useResource } from '../hooks/useResource'
+import { DirectionsLink } from '../components/DirectionsLink'
 import { formatMoney } from '../utils/format'
 
 import { saleDate, methodLabels } from './presentation'
@@ -31,7 +32,7 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
       <Card title="Müşteri ve satış" accessory={<PaymentBadge sale={sale} />}>
         <dl className="sale-details">
           <div><dt>Müşteri</dt><dd>{sale.customer.name}</dd></div><div><dt>Telefon</dt><dd>{sale.customer.phone || 'Belirtilmedi'}</dd></div>
-          <div><dt>Adres</dt><dd>{sale.customer.address}</dd></div><div><dt>Satış durumu</dt><dd>{sale.status === 'completed' ? 'Tamamlandı (teslim edildi)' : 'İptal edildi'}</dd></div>
+          <div><dt>Adres</dt><dd>{sale.customer.address || 'Belirtilmedi'}<DirectionsLink address={sale.customer.address} /></dd></div><div><dt>Satış durumu</dt><dd>{sale.status === 'completed' ? 'Tamamlandı (teslim edildi)' : 'İptal edildi'}</dd></div>
           <div><dt>İşlemi yapan</dt><dd>{sale.created_by_username}</dd></div><div><dt>Oluşturulma</dt><dd><time dateTime={sale.created_at}>{saleDate(sale.created_at)}</time></dd></div>
         </dl>
       </Card>

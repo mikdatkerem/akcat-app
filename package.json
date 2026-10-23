@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "test:format": "node --experimental-strip-types --test tests/format.test.mjs",
     "test:config": "node --experimental-strip-types --test tests/api-origin.test.mjs",
+    "test:directions": "node --experimental-strip-types --test tests/directions.test.mjs",
+    "test:directions:browser": "node tests/run-auth.mjs --suite directions",
     "test:audit:browser": "node tests/run-auth.mjs --suite audit",
     "test:sales:math": "node --experimental-strip-types --test tests/sales-math.test.mjs",
     "test:auth:serve": "node --experimental-strip-types tests/serve-auth.mjs",

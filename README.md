@@ -2,6 +2,8 @@
 
 React + TypeScript + Vite arayüzüdür. Bağımsız API `akcat-api` projesindedir; web D1’e doğrudan erişmez.
 
+Müşteri ve satış detayındaki “Yol Tarifi Al” eylemi, kayıtlı adresi kullanıcı tıklamasıyla Google Maps'e açar. Ortak bileşen, gizlilik, masaüstü/mobil davranışı ve gelecekteki native deep link/fallback planı: [Yol tarifi entegrasyonu](docs/DIRECTIONS.md).
+
 ## Yerel geliştirme
 
 API terminalinde (Windows PowerShell):
