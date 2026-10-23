@@ -1,0 +1,9 @@
+# Cloudflare Static Assets responses only; Worker/API responses keep their own headers.
+# Production JS/CSS and /api requests use the same origin (AKCAT_API Service Binding).
+# If VITE_API_BASE_URL uses a separate HTTPS origin, add that exact origin to connect-src.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'none'; media-src 'none'

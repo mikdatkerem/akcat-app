@@ -6,6 +6,7 @@
 }
 .auth-container { width: 100%; max-width: 420px; min-width: 0; }
 .auth-brand { display: flex; justify-content: center; align-items: center; gap: var(--space-2); margin-bottom: var(--space-6); color: var(--color-primary-active); font-size: 32px; font-weight: var(--font-weight-semibold); letter-spacing: -1px; }
+.auth-brand .brand-logo { height: 72px; }
 .auth-panel { padding: var(--space-6); border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); }
 .auth-panel h1 { margin: 0; font-size: var(--font-size-page); font-weight: var(--font-weight-semibold); line-height: 1.35; letter-spacing: -0.5px; }
 .auth-description { margin: var(--space-2) 0 var(--space-6); color: var(--color-text-secondary); }

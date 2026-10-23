@@ -20,6 +20,7 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 a { color: inherit; text-decoration: none; }
 button, input, select { font-family: inherit; }
 svg { flex-shrink: 0; }
+.brand-logo { display: block; width: auto; height: 44px; max-width: 100%; object-fit: contain; }
 :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 ::selection { color: var(--color-primary-hover); background: var(--color-primary-100); }
 .numeric, .money { font-variant-numeric: tabular-nums; }

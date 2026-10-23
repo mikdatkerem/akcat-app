@@ -10,7 +10,7 @@ export function OverviewPage({ role }: { role: Role }) {
     <>
       <PageHeader title="Genel Bakış" description="Satış, tahsilat ve veresiye durumunu tek yerden takip edin." />
       <DashboardReport />
-      <ApiHealth />
+      {role === 'admin' && <ApiHealth />}
       <section className="workspace-section" aria-labelledby="workspace-title">
         <div className="section-heading"><h2 id="workspace-title">Çalışma alanları</h2><p>İlgili alana geçerek başlayın.</p></div>
         <div className="workspace-links">

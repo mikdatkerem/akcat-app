@@ -160,3 +160,15 @@ Talep detayında asıl tahsilat, tam tutar, önce/beklenen sonra bakiye ve uygul
 API origin’i `src/config/apiOrigin.ts` ile hem Vite build öncesinde hem istemcide doğrulanır. Üretim HTTP/loopback ve origin dışı URL’leri reddeder; boş adres üretim route’u gerektirir. `test:config` bu kuralları, `test:audit:browser` kayıp yanıt/yenileme/aynı UUID/çatışma/depolama engeli, XSS metin kaçışı ve 320/390/768/1024/1440 px iş akışını gerçek izole API ile doğrular. `src/finance/pendingKey.ts` yalnızca opak UUID’yi saklar; ayrı yeni finansal işlem `RecoveryNotice` ile geçmiş kontrolü teyidi ister.
 
 Güncel çıkış engelleri, test sonuçları ve manuel Cloudflare planı: [Üretim denetimi](../akcat-api/docs/PRODUCTION_AUDIT.md), [Çıkış/kurtarma planı](../akcat-api/docs/RELEASE_RUNBOOK.md).
+
+## Web güvenlik başlıkları
+
+`public/_headers`, build sırasında statik çıktı içine kopyalanır; Cloudflare Static Assets HTML/CSS/JS ve diğer statik yanıtlarına `nosniff`, `strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, Permissions-Policy ve CSP uygular. Kamera, mikrofon, konum, ekran yakalama, ödeme, USB, otomatik medya ve hareket sensörleri kapalıdır. Harici Google Maps sayfasındaki konum kullanımı bu uygulamanın izin politikasıyla kapatılmaz.
+
+CSP mevcut üretim kaynaklarını aynı origin ile sınırlar; inline script/style, eval, frame, object, worker ve medya yüklemesine izin vermez. `frame-ancestors 'none'`, `base-uri 'self'` ve `form-action 'self'` uygulanır. Kaynak kodda JS/CSS harici CDN'den yüklenmez; drawer/dialog kaydırma kilidi `element.style` özelliklerini doğrudan günceller ve inline stil metni eklemez. Google Maps bağlantıları normal üst seviye/yeni sekme yönlendirmesidir; Google script, iframe veya fetch izni eklenmez.
+
+Mevcut üretim yolunda tarayıcı `/api/*` için aynı origin'i kullanır; web Worker'ı `AKCAT_API` Service Binding'ine iletir. `VITE_API_BASE_URL` ayrı HTTPS origin'iyle kullanılacaksa **deploy öncesi o tam origin `public/_headers` içindeki `connect-src 'self'` listesine eklenmelidir**; dosyada ortam değişkeni otomatik genişletilmez. Aksi halde CSP API erişimini engeller. Genel `https:` veya wildcard izni eklemeyin; cookie, authentication, Service Binding ve CORS ayarlarını bu amaçla gevşetmeyin.
+
+`_headers` kuralları Worker kodunun ürettiği veya API'den Service Binding ile ilettiği yanıtlara uygulanmaz; API'nin mevcut güvenlik/CORS/cookie başlıkları korunur. Bu dosya Vite geliştirme sunucusuna başlık eklemez; geliştirme HMR/inline CSS için üretim CSP'si gevşetilmez. [Cloudflare Static Assets başlıkları](https://developers.cloudflare.com/workers/static-assets/headers/), [CSP ve style özellikleri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src).
+
+Deploy komutu `akcat-app/` içinde `npm.cmd run deploy` (mevcut script: build + Wrangler deploy). Bu değişiklik kapsamında test, build veya deploy çalıştırılmadı; üretim yanıtları/tarayıcı CSP davranışı çalışma zamanında doğrulanmadı.
