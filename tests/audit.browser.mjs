@@ -91,7 +91,7 @@ export async function verifyAudit(page, metadataPath) {
   await page.getByRole('heading', { name: 'Tahsilat kaydı doğrulanamadı', exact: true }).waitFor(); await page.reload()
   await page.getByRole('heading', { name: 'Önceki işlemin sonucunu kontrol edin', exact: true }).waitFor()
   await paymentFields('60'); await paymentSubmit().click()
-  await page.getByRole('heading', { name: 'Tahsilat kaydı doğrulanamadı', exact: true }).waitFor()
+  await page.getByRole('heading', { name: 'Önceki tahsilat bilgilerini kontrol edin', exact: true }).waitFor()
   assert.equal(calls.payment[2], calls.payment[3]); assert.equal((await sql('SELECT count(*) AS n FROM payments WHERE sale_id=?', [sale.id]))[0].n, 2)
   const startNew = page.getByRole('button', { name: 'Ayrı yeni işlem başlat', exact: true }); assert.equal(await startNew.isDisabled(), true)
   await page.getByLabel('Önceki işlemi geçmişten kontrol ettim.', { exact: true }).check(); await startNew.click()

@@ -1,6 +1,6 @@
 import { AdjustmentMetrics } from './AdjustmentMetrics'
 import { useCallback } from 'react'
-import { Button, ErrorState, LoadingState } from '../components/ui'
+import { Button, Card, EmptyState, ErrorState, LoadingState } from '../components/ui'
 import { getSummaryReport } from '../services/reports'
 import { useResource } from '../hooks/useResource'
 import { Metrics, RangeNote, ReportTable } from './ReportParts'
@@ -21,12 +21,13 @@ export function DashboardReport() {
         { key: 'today_count', label: 'Bugünkü satış adedi', value: result.data.sales.sales_count, money: false },
       ]} /><p className="report-help">Açık borç tüm tarihlerdeki açık satışları kapsar. Satış ve tahsilat kendi işlem tarihlerine göre hesaplanır. Nakit Tahsilat fiziksel kasa bakiyesi değildir.</p>
       <AdjustmentMetrics totals={result.data.adjustments} />
-      <div className="report-section-heading"><h2>Son işlemler</h2><a className="text-link" href="#/raporlar">Raporları görüntüle</a></div>
-      <ReportTable rows={result.data.recent} rowKey={row => row.id} label="Bugünkü son işlemler" columns={[
+      <div className="report-section-heading"><h2>Bugünkü son işlemler</h2><a className="text-link" href="#/raporlar">Raporları görüntüle</a></div>
+      <p className="report-help">Türkiye saatine (Europe/Istanbul) göre yalnızca bugünkü en son 10 hareket gösterilir. Önceki günlerin kayıtları için raporlardaki tarih filtresini kullanın.</p>
+      {result.data.recent.length === 0 ? <Card title="Bugünkü işlem geçmişi"><EmptyState title="Henüz işlem bulunmuyor." description="Bugün kayıtlı hareket yok. Önceki günlerdeki işlemler raporlarda görüntülenebilir." /></Card> : <ReportTable rows={result.data.recent} rowKey={row => row.id} label="Bugünkü son işlemler" columns={[
         { label: 'İşlem türü', cell: row => row.type === 'record_reversal' ? 'Hatalı tahsilat ters kaydı' : row.type === 'external_refund' ? 'Harici para iadesi' : row.type === 'payment' ? 'Tahsilat' : row.type === 'cancellation' ? 'Satış iptali' : row.status === 'cancelled' ? 'Satış (iptal edildi)' : 'Satış' },
         { label: 'Müşteri', cell: row => <a className="text-link" href={row.sale_id ? saleHref(row.sale_id) : customerHref(row.customer_id)}>{row.customer_name}</a> },
         { label: 'Tutar', cell: row => <span className="money">{formatMoney(row.amount_kurus)}</span> }, { label: 'İşlemi yapan', cell: row => row.created_by_username }, { label: 'Tarih', cell: row => saleDate(row.created_at) },
-      ]} />
+      ]} />}
     </>}
   </section>
 }

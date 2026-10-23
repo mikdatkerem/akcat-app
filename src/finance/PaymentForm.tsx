@@ -19,6 +19,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
   const [customer, setCustomer] = useState(draft.customer), [sale, setSale] = useState(draft.sale)
   const [amount, setAmount] = useState(draft.amount), [method, setMethod] = useState(draft.method)
   const [pending, setPending] = useState(draft.pending), [busy, setBusy] = useState(false), [error, setError] = useState('')
+  const [errorTitle, setErrorTitle] = useState('Tahsilat kaydı doğrulanamadı')
   const [invalid, setInvalid] = useState<{ customer?: string; sale?: string; amount?: string; method?: string }>({})
   const mounted = useRef(false), sending = useRef(false)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
@@ -45,7 +46,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
       }
       body = { customer_id: customer.id, sale_id: sale.id, amount_kurus: kurus, method }
     }
-    try { rememberKey(actor, 'payment', draft.key) } catch { setError('Tarayıcı işlem anahtarını koruyamadı. Kayıt gönderilmedi; önceki işlemi geçmişten kontrol edin ve tarayıcı ayarlarınızı inceleyin.'); return }
+    try { rememberKey(actor, 'payment', draft.key) } catch { setErrorTitle('Tahsilat gönderilmedi'); setError('Tarayıcı işlem anahtarını koruyamadı. Kayıt gönderilmedi; önceki işlemi geçmişten kontrol edin ve tarayıcı ayarlarınızı inceleyin.'); return }
     updatePaymentDraft(actor, draft.key, { pending: body })
     sending.current = true; setPending(body); setBusy(true); setError('')
     try {
@@ -53,8 +54,10 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
       if (mounted.current) { clearPaymentDraft(actor); onSaved(receipt) }
     } catch (cause) {
       if (mounted.current) {
+        const rejected = cause instanceof ApiError && [400, 403, 413, 415, 422].includes(cause.status)
+        setErrorTitle(rejected ? 'Tahsilat kaydedilmedi' : cause instanceof ApiError && cause.status === 409 ? 'Önceki tahsilat bilgilerini kontrol edin' : 'Tahsilat kaydı doğrulanamadı')
         setError(cause instanceof ApiError ? cause.message : 'Tahsilat sonucu doğrulanamadı. Aynı tahsilatı tekrar deneyin.')
-        if (cause instanceof ApiError && [400, 403, 413, 415, 422].includes(cause.status)) { updatePaymentDraft(actor, draft.key, { pending: null }); setPending(null) }
+        if (rejected) { updatePaymentDraft(actor, draft.key, { pending: null }); setPending(null) }
       }
     } finally { sending.current = false; if (mounted.current) setBusy(false) }
   }
@@ -80,7 +83,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
             <option value="">Seçin</option><option value="cash">Nakit</option><option value="card">Kart</option><option value="bank">Banka</option>
           </Select></div>
       </Card>
-      {error && <ErrorState title="Tahsilat kaydı doğrulanamadı" description={error} />}
+      {error && <ErrorState title={errorTitle} description={error} />}
       {pending && !busy && <p className="finance-info" role="status">Sonuç belirsiz olabilir. Bilgiler ve işlem anahtarı korundu. Sayfayı yenilemeden aynı tahsilatı tekrar deneyin veya geçmişi kontrol edin.</p>}
       <div><Button type="submit" loading={busy} loadingText="Tahsilat kaydediliyor…">{pending ? 'Aynı tahsilatı tekrar dene' : 'Tahsilatı Kaydet'}</Button></div>
     </form>

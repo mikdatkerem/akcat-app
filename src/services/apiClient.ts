@@ -25,7 +25,8 @@ export function onUnauthorized(listener: () => void) {
   return () => { unauthorizedListeners.delete(listener) }
 }
 
-function httpError(status: number, code: string) {
+function httpError(status: number, code: string, method: string) {
+  if (code === 'DATABASE_SCHEMA_REQUIRED') return new ApiError(status, code, 'Veritabanı güncellemesi gerekli. Sistem yöneticinizle iletişime geçin. Boş geçmiş veya başarılı kayıt olarak değerlendirmeyin.')
   if (code === 'INVALID_REPORT_INPUT') return new ApiError(status, code, 'Rapor dönemini, tarih aralığını, aramayı ve sayfalamayı kontrol edin.')
   const correctionErrors: Record<string, string> = {
     INVALID_CORRECTION_INPUT: 'Hedef kaydı, düzeltme türünü, gerekçeyi ve istenen değişikliği kontrol edin.',
@@ -42,15 +43,16 @@ function httpError(status: number, code: string) {
   if (code === 'SALE_NOT_FOUND') return new ApiError(status, code, 'Satış bulunamadı.')
   if (code === 'INVALID_SALE_INPUT') return new ApiError(status, code, 'Müşteriyi, miktarları, ödeme ve filtre alanlarını kontrol edin.')
   if (code === 'SALE_NOT_ALLOWED') return new ApiError(status, code, 'Satış kaydedilmedi. Müşteri/ürün aktifliğini, güncel fiyatları ve ödeme tutarını kontrol edin.')
-  const message = status === 401 ? (code === 'INVALID_CREDENTIALS' ? 'Kullanıcı adı veya parola hatalı.' : 'Oturumunuz geçerli değil. Lütfen tekrar giriş yapın.')
-    : status === 403 ? 'İşleme izin verilmedi. Oturumunuzu kontrol edip tekrar deneyin.'
+  const message = status === 401 ? (code === 'INVALID_CREDENTIALS' ? 'Kullanıcı adı veya parola hatalı.' : 'Oturumunuz geçersiz veya süresi dolmuş. Lütfen tekrar giriş yapın.')
+    : status === 403 ? 'Bu işlem için yetkiniz yok veya oturum güvenlik doğrulaması geçersiz. Oturumunuzu kontrol edin.'
       : status === 429 ? 'Çok fazla giriş denemesi. Lütfen bir dakika sonra tekrar deneyin.'
-        : status === 503 ? 'Giriş hizmeti şu anda kullanılamıyor. Lütfen sistem yöneticinizle iletişime geçin.'
+        : status === 503 ? (code === 'AUTH_UNAVAILABLE' ? 'Giriş hizmeti şu anda kullanılamıyor. Lütfen sistem yöneticinizle iletişime geçin.' : 'Hizmet geçici olarak kullanılamıyor. Lütfen tekrar deneyin.')
           : status === 400 ? (code === 'INVALID_CUSTOMER_INPUT' ? 'Müşteri bilgilerini, telefonu ve filtreleri kontrol edin.' : code === 'INVALID_PRODUCT_INPUT' ? 'Ürün adını, fiyatı ve filtreleri kontrol edin.' : 'Kullanıcı adı ve parola biçimini kontrol edin.')
             : status === 404 && code === 'CUSTOMER_NOT_FOUND' ? 'Müşteri bulunamadı.'
               : status === 404 && code === 'PRODUCT_NOT_FOUND' ? 'Ürün bulunamadı.'
                 : status === 409 ? 'Önceki işlem farklı bilgilerle kaydedilmiş olabilir. Listeyi kontrol edin.'
-            : 'İşlem tamamlanamadı. Lütfen tekrar deneyin.'
+            : method === 'GET' ? 'Veriler sunucudan alınamadı. Lütfen tekrar deneyin.'
+              : 'Kayıt sonucu doğrulanamadı. Bilgiler ve işlem anahtarı korunduysa aynı işlemi tekrar deneyin veya geçmişi kontrol edin; ayrı yeni kayıt oluşturmayın.'
   return new ApiError(status, code, message)
 }
 
@@ -82,13 +84,13 @@ export async function apiRequest(path: `/api/${string}`, options: {
   }
   let data: unknown
   try { data = await response.json() } catch {
-    if (!response.ok) throw httpError(response.status, 'HTTP_ERROR')
+    if (!response.ok) throw httpError(response.status, 'HTTP_ERROR', method)
     throw new ApiError(0, 'INVALID_RESPONSE', 'Sunucudan beklenen yanıt alınamadı. Lütfen tekrar deneyin.')
   }
   if (!response.ok) {
     const code = typeof data === 'object' && data !== null && 'error' in data && typeof data.error === 'object'
       && data.error !== null && 'code' in data.error && typeof data.error.code === 'string' ? data.error.code : 'HTTP_ERROR'
-    throw httpError(response.status, code)
+    throw httpError(response.status, code, method)
   }
   return data
 }

@@ -46,6 +46,9 @@ export async function verifyReports(browserPage, metadataPath) {
     await page.goto(meta.origin + '/#/raporlar/satislar?created_by=' + meta.fixture.id)
     await page.getByRole('heading', { name: 'Yönetici yetkisi gerekli', exact: true }).waitFor()
     await page.goto(meta.origin + '/#/genel-bakis'); await metric('today_sales').filter({ hasText: '0,00' }).waitFor()
+    await page.getByRole('heading', { name: 'Henüz işlem bulunmuyor.', exact: true }).waitFor()
+    await page.getByText(/yalnızca bugünkü en son 10 hareket/).waitFor()
+    assert.equal(await page.getByRole('alert').count(), 0)
     pass('protected reports; real zero dashboard; employee management route blocked without API request')
     const authResponse = await context.request.get(meta.origin + '/api/v1/auth/me', { headers: { 'X-Test-Key': meta.key } }), auth = await authResponse.json()
     async function post(path, data, method = 'POST') {
@@ -60,6 +63,11 @@ export async function verifyReports(browserPage, metadataPath) {
     const summary = await (await context.request.get(meta.origin + '/api/v1/reports/summary', { headers: { 'X-Test-Key': meta.key } })).json()
     const old = new Date(Date.parse(summary.range.from) - 3600000).toISOString()
     await sql('UPDATE sales SET created_at=?,updated_at=? WHERE id=?', [old, old, initial.id]); await sql('UPDATE payments SET created_at=? WHERE sale_id=?', [old, initial.id])
+    await page.reload(); await metric('current_debt').filter({ hasText: '400,00' }).waitFor()
+    await page.getByRole('heading', { name: 'Henüz işlem bulunmuyor.', exact: true }).waitFor()
+    assert.match(await metric('today_sales').textContent(), /0,00/)
+    assert.match(await metric('today_payments').textContent(), /0,00/)
+    pass('Istanbul today excludes previous-day movements with an explicit period explanation; current debt remains all-date')
     const other = { id: randomUUID(), username: 'collector_' + randomUUID().slice(0, 8) }
     await sql("INSERT INTO users(id,username,password_hash,role,is_active,created_at,updated_at) SELECT ?,?,password_hash,'employee',1,created_at,updated_at FROM users WHERE id=?", [other.id, other.username, meta.fixture.id])
     const login = await fetch(meta.api + '/api/v1/auth/login', { method: 'POST', headers: { 'X-Test-Key': meta.key, Origin: meta.origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: other.username, password: meta.fixture.password }) })

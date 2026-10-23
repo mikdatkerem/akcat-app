@@ -46,6 +46,8 @@ export async function verifyFinance(browserPage, metadataPath) {
     await page.getByRole('button', { name: 'Giriş Yap', exact: true }).click()
     await page.getByRole('heading', { name: 'Borçlu müşteri yok', exact: true }).waitFor()
     await page.goto(meta.origin + '/#/tahsilatlar'); await page.getByRole('heading', { name: 'Tahsilat bulunamadı', exact: true }).waitFor()
+    await page.goto(meta.origin + '/#/satislar'); await page.getByRole('heading', { name: 'Henüz satış yok', exact: true }).waitFor()
+    assert.equal(await page.getByRole('alert').count(), 0)
     pass('protected finance routes; genuine empty debt and payment lists')
     const me = await context.request.get(meta.origin + '/api/v1/auth/me', { headers: { 'X-Test-Key': meta.key } }); const auth = await me.json()
     async function post(path, data) {
@@ -53,6 +55,11 @@ export async function verifyFinance(browserPage, metadataPath) {
       assert.equal(response.status(), 201); return (await response.json()).data
     }
     const customer = await post('/api/v1/customers', { name: 'Ortak müşteri ' + randomUUID(), phone: '+90 555 123 45 67', address: 'Yalnızca izole test adresi' })
+    await page.goto(meta.origin + '/#/musteriler/' + customer.id); await title(customer.name).waitFor()
+    await page.getByRole('heading', { name: 'Finansal hareket bulunamadı', exact: true }).waitFor()
+    await page.getByRole('heading', { name: 'Açık borç yok', exact: true }).waitFor()
+    assert.equal(await page.getByRole('alert').count(), 0)
+    pass('empty sale and customer financial histories are success/empty, never failed operations')
     await sql("UPDATE users SET role='admin' WHERE id=?", [meta.fixture.id])
     const product = await post('/api/v1/products', { name: 'İzole ürün ' + randomUUID(), current_price_kurus: 25000 })
     await sql("UPDATE users SET role='employee' WHERE id=?", [meta.fixture.id])
@@ -67,6 +74,15 @@ export async function verifyFinance(browserPage, metadataPath) {
     }
     const sale = await otherSale(2, 10000)
     await page.goto(meta.origin + '/#/satislar'); await page.getByText(other.username, { exact: true }).waitFor()
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 950 })
+      const link = page.getByRole('link', { name: customer.name, exact: true })
+      assert.equal(await link.getAttribute('href'), '#/musteriler/' + customer.id)
+      await link.click(); await title(customer.name).waitFor()
+      await page.goto(meta.origin + '/#/satislar'); await page.getByText(other.username, { exact: true }).waitFor()
+      assert.equal(await page.getByRole('link', { name: customer.name + ' satış detayı', exact: true }).getAttribute('href'), '#/satislar/' + sale.id)
+    }
+    pass('sale customer links navigate by ID at 320/390/1440px and the sale detail link remains independent')
     await page.goto(meta.origin + '/#/satislar/' + sale.id); await title('Satış detayı').waitFor()
     await page.getByRole('link', { name: 'Bu satışa tahsilat al', exact: true }).click(); await title('Yeni tahsilat').waitFor()
     await page.getByText('Kalan satış borcu: 400,00\u00a0₺', { exact: true }).waitFor()
@@ -127,9 +143,18 @@ export async function verifyFinance(browserPage, metadataPath) {
     failRead = '/api/v1/payments'; await page.goto(meta.origin + '/#/tahsilatlar'); await page.reload()
     await page.getByRole('heading', { name: 'Tahsilatlar yüklenemedi', exact: true }).waitFor(); assert.equal(await page.locator('.finance-history li').count(), 0)
     failRead = ''; await page.getByRole('button', { name: 'Tekrar dene', exact: true }).click(); await page.locator('.finance-history li').first().waitFor()
+    const stale = await otherSale(1)
+    await page.goto(meta.origin + `/#/tahsilatlar/yeni?customer_id=${customer.id}&sale_id=${stale.id}`); await title('Yeni tahsilat').waitFor()
+    await page.getByText('Kalan satış borcu: 250,00\u00a0₺', { exact: true }).waitFor()
+    await page.getByLabel(/^Alınan tutar/).fill('100'); await page.getByLabel(/^Tahsilat yöntemi/).selectOption('cash')
+    await post('/api/v1/payments', { customer_id: customer.id, sale_id: stale.id, amount_kurus: 25000, method: 'cash' })
+    await submit().click(); await page.getByRole('heading', { name: 'Tahsilat kaydedilmedi', exact: true }).waitFor()
+    await page.getByText('Tahsilat kaydedilmedi. Müşteri/satış eşleşmesini ve güncel kalan borcu kontrol edin.', { exact: true }).waitFor()
+    assert.equal(await page.getByLabel(/^Alınan tutar/).isDisabled(), false)
+    assert.equal((await sql('SELECT count(*) AS n FROM payments WHERE sale_id=?', [stale.id]))[0].n, 1)
     const health = await context.request.get(meta.origin + '/api/health', { headers: { 'X-Test-Key': meta.key } }); assert.deepEqual(await health.json(), { status: 'ok', database: 'connected' })
     assert.deepEqual(errors, [])
-    pass('actual API faults never become fake/empty success; health intact; no browser errors; 320/390/1440px fit')
+    pass('actual API faults stay errors; definitive 422 collection rejection is distinct from uncertain outcome; health and responsive layouts intact')
     return { passed, screenshots, scope: 'Only isolated temporary D1 fixtures; real React/Vite proxy/Worker API. No production or real-user data.' }
   } catch (error) {
     await page.screenshot({ path: join(meta.temporary, 'finance-failure.png'), fullPage: true })

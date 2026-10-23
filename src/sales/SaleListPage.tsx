@@ -10,6 +10,7 @@ import { RecordPicker } from './RecordPicker'
 import { PaymentBadge } from './SaleRecord'
 import { saleDate } from './presentation'
 import { saleHref, saleListHref } from './routing'
+import { customerHref } from '../customers/routing'
 
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'all' })
 const day = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -60,7 +61,7 @@ export function SaleListPage({ filter, role }: { filter: SaleFilter; role: Role 
           <thead><tr><th scope="col">Tarih</th><th scope="col">Müşteri</th><th scope="col">Toplam</th><th scope="col">Ödenen</th><th scope="col">Kalan</th><th scope="col">Ödeme durumu</th><th scope="col">İşlemi yapan</th></tr></thead>
           <tbody>{list.data.map(sale => <tr key={sale.id}>
             <td><a className="sale-detail-link" href={saleHref(sale.id)} aria-label={`${sale.customer_name} satış detayı`}><time dateTime={sale.created_at}>{saleDate(sale.created_at)}</time></a></td>
-            <td data-label="Müşteri">{sale.customer_name}{sale.status === 'cancelled' && <span> · İptal edildi</span>}</td>
+            <td data-label="Müşteri"><a className="text-link" href={customerHref(sale.customer_id)}>{sale.customer_name}</a>{sale.status === 'cancelled' && <span> · İptal edildi</span>}</td>
             <td data-label="Toplam"><span className="money">{formatMoney(sale.total_kurus)}</span></td>
             <td data-label="Ödenen"><span className="money">{formatMoney(sale.paid_kurus)}</span></td>
             <td data-label="Kalan"><span className="money">{formatMoney(sale.remaining_kurus)}</span></td>
