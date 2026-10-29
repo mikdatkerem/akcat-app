@@ -40,15 +40,23 @@ Dağınık müşteri kayıtlarını, satış bilgilerini ve ödeme hareketlerini
 
 Ek olarak müşteri ve satış detaylarında, kayıtlı adres için kullanıcı isteğiyle **Google Haritalar üzerinden yol tarifi** açılabilir.
 
-## Ekran görüntüleri
+## 📸 Ekran Görüntüleri
 
+### 📊 Genel Bakış
+![AKÇAT Dashboard](screenshots/dashboard.png)
+
+### 👥 Müşteri Yönetimi
+![AKÇAT Müşteriler](screenshots/customers.png)
+
+### 💳 Tahsilat Yönetimi
+![AKÇAT Tahsilatlar](screenshots/payments.png)
 <!--
 Gerçek ekran görüntüleri eklendiğinde bu bölümü aşağıdaki düzenle değiştirin.
 Önerilen klasör: docs/screenshots/
 
 ### Masaüstü
-![AKÇAT - Genel Bakış](docs/screenshots/desktop-overview.png)
-![AKÇAT - Müşteriler](docs/screenshots/desktop-customers.png)
+[AKÇAT - Genel Bakış](docs/screenshots/desktop-overview.png)
+![AKÇAT - Müşteriler](docs/screenshots/desktop-overview.png)
 
 ### Mobil
 <p align="center">

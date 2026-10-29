@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Button, Card, EmptyState, ErrorState, HelpDisclosure, LoadingState } from '../components/ui'
+import { Button, Card, EmptyState, ErrorState, LoadingState } from '../components/ui'
 import { getSummaryReport } from '../services/reports'
 import { useResource } from '../hooks/useResource'
 import { Metrics, ReportTable } from './ReportParts'
@@ -20,11 +20,6 @@ export function DashboardReport() {
         { key: 'today_cash', label: 'Bugünkü Nakit Tahsilat', value: result.data.payments.cash_kurus }, { key: 'current_debt', label: 'Güncel açık müşteri borcu', value: result.data.receivables.total_debt_kurus },
         { key: 'today_count', label: 'Bugünkü satış adedi', value: result.data.sales.sales_count, money: false },
       ]} />
-      <HelpDisclosure title="Özet nasıl hesaplanır?">
-        <p>Açık borç tüm tarihlerdeki açık satışları kapsar.</p>
-        <p>Satış ve tahsilat kendi işlem tarihlerine göre hesaplanır.</p>
-        <p>Nakit tahsilat fiziksel kasa bakiyesi değildir.</p>
-      </HelpDisclosure>
       <div className="report-section-heading"><h2>Bugünkü son işlemler</h2><a className="text-link" href="#/raporlar">Raporları görüntüle</a></div>
       <p className="report-help">Bugünün son 10 işlemi. Önceki kayıtlar için raporları kullanın.</p>
       {result.data.recent.length === 0 ? <Card title="Bugünkü işlem geçmişi"><EmptyState title="Henüz işlem bulunmuyor." description="Bugün kayıtlı hareket yok. Önceki günlerdeki işlemler raporlarda görüntülenebilir." /></Card> : <ReportTable rows={result.data.recent} rowKey={row => row.id} label="Bugünkü son işlemler" columns={[
