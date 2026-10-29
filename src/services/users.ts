@@ -27,3 +27,8 @@ export const getUser = async (id: string) => single(await apiRequest(`/api/v1/us
 export const createUser = async (body: UserInput, key: string) => single(await apiRequest('/api/v1/users', { method: 'POST', body, idempotencyKey: key }))
 export const updateUser = async (id: string, body: UserPatch, key: string) => single(await apiRequest(`/api/v1/users/${encodeURIComponent(id)}`, { method: 'PATCH', body, idempotencyKey: key }))
 export const resetUserPassword = async (id: string, password: string, key: string) => single(await apiRequest(`/api/v1/users/${encodeURIComponent(id)}/reset-password`, { method: 'POST', body: { password }, idempotencyKey: key }))
+export async function deleteUser(id: string, key: string): Promise<void> {
+  const result = await apiRequest(`/api/v1/users/${encodeURIComponent(id)}`, { method: 'DELETE', idempotencyKey: key })
+  if (!result || typeof result !== 'object' || !('success' in result) || result.success !== true
+    || !('id' in result) || result.id !== id) throw invalid()
+}

@@ -4,10 +4,13 @@ import { PageHeader } from '../pages/PageHeader'
 import { listCustomers, type CustomerFilter } from '../services/customers'
 import { customerHref, customerListHref } from './routing'
 import { useResource } from '../hooks/useResource'
+import type { Role } from '../services/auth'
+import { CustomerActions } from './CustomerActions'
 
-export function CustomerListPage({ filter }: { filter: CustomerFilter }) {
+export function CustomerListPage({ filter, role }: { filter: CustomerFilter; role: Role }) {
   const [search, setSearch] = useState(filter.q)
   const [status, setStatus] = useState(filter.status)
+  const [notice, setNotice] = useState('')
   const load = useCallback(() => listCustomers(filter), [filter])
   const { result, retry } = useResource(JSON.stringify(filter), load)
   function searchCustomers(event: FormEvent) {
@@ -16,9 +19,14 @@ export function CustomerListPage({ filter }: { filter: CustomerFilter }) {
     if (search.trim() === filter.q && status === filter.status && filter.page === 1) retry()
   }
   const list = result?.data
+  function changed(message: string, removed: boolean) {
+    setNotice(message); retry()
+    if (removed) requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true }))
+  }
   return <>
     <PageHeader title="Müşteriler" description="Müşteri bilgileri ve teslimat notlarını yönetin."
       actions={<a className="ui-button ui-button--primary" href="#/musteriler/yeni">Müşteri ekle</a>} />
+    {notice && <p className="customer-success" role="status">{notice}</p>}
     <form className="customer-filters" onSubmit={searchCustomers} role="search" aria-label="Müşteri arama">
       <Input label="İsim veya telefon" name="q" type="search" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />
       <Select label="Durum" value={status} onChange={event => setStatus(event.target.value as CustomerFilter['status'])}>
@@ -37,7 +45,8 @@ export function CustomerListPage({ filter }: { filter: CustomerFilter }) {
               <td data-label="Telefon">{customer.phone || 'Belirtilmedi'}</td>
               <td className="customer-address" data-label="Adres"><span>{customer.address}</span></td>
               <td><Badge tone={customer.is_active ? 'success' : 'neutral'}>{customer.is_active ? 'Aktif' : 'Pasif'}</Badge></td>
-              <td><a className="customer-detail-link" href={customerHref(customer.id)} aria-label={`${customer.name} detaylarını görüntüle`}>Detay</a></td>
+              <td>{role === 'admin' ? <CustomerActions customer={customer} onChanged={changed} />
+                : <a className="customer-detail-link" href={customerHref(customer.id)} aria-label={`${customer.name} detaylarını görüntüle`}>Detay</a>}</td>
             </tr>)}</tbody>
           </table>
         </div>}

@@ -32,5 +32,5 @@ export function CustomersPage({ role }: { role: Role }) {
   }
   if (route.kind === 'create') return <CustomerForm role={role} onSaved={saved} />
   if (route.kind === 'record') return <CustomerRecordPage key={hash} id={route.id} editing={route.editing} role={role} onSaved={saved} notice={notice?.id === route.id ? notice.text : undefined} />
-  return <CustomerListPage key={hash} filter={route.filter} />
+  return <CustomerListPage key={hash} filter={route.filter} role={role} />
 }

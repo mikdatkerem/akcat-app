@@ -26,6 +26,17 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string, method: string) {
+  const deletionErrors: Record<string, string> = {
+    SELF_ACCOUNT_DELETE: 'Kendi hesabınızı silemezsiniz.',
+    USER_FINANCIAL_HISTORY: 'Bu çalışan geçmiş finansal işlemlerde yer aldığı için kalıcı olarak silinemez. Hesabını pasife alabilirsiniz.',
+    USER_IN_USE: 'Bu hesap geçmiş denetim veya ilişkili kayıtlarda yer aldığı için kalıcı olarak silinemez. Hesabını pasife alabilirsiniz.',
+    USER_DELETED: 'Bu işlemle oluşturulan hesap daha sonra silinmiş. Çalışan listesini yenileyin.',
+    USER_DELETE_CONFLICT: 'Hesap silinemedi. Çalışan listesini yenileyip tekrar deneyin.',
+    CUSTOMER_IN_USE: 'Bu müşterinin geçmiş işlem kayıtları bulunduğu için kalıcı olarak silinemez. Müşteriyi pasife alabilirsiniz.',
+    CUSTOMER_DELETED: 'Bu işlemle oluşturulan müşteri daha sonra silinmiş. Müşteri listesini yenileyin.',
+    CUSTOMER_DELETE_CONFLICT: 'Müşteri silinemedi. Listeyi yenileyip tekrar deneyin.',
+  }
+  if (deletionErrors[code]) return new ApiError(status, code, deletionErrors[code])
   const productErrors: Record<string, string> = {
     PRODUCT_IN_USE: 'Bu ürün geçmiş satış kayıtlarında kullanıldığı için kalıcı olarak silinemez. Ürünü pasife alarak yeni satışlarda kullanılmasını engelleyebilirsiniz.',
     PRODUCT_DELETED: 'Bu işlemle oluşturulan ürün daha sonra silinmiş. Ürün listesini yenileyin.',

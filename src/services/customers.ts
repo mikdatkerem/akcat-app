@@ -35,3 +35,8 @@ export async function listCustomers(filter: CustomerFilter): Promise<CustomerLis
 export const getCustomer = async (id: string) => readSingle(await apiRequest(`/api/v1/customers/${encodeURIComponent(id)}`))
 export const createCustomer = async (body: CustomerInput, key: string) => readSingle(await apiRequest('/api/v1/customers', { method: 'POST', body, idempotencyKey: key }))
 export const updateCustomer = async (id: string, body: CustomerPatch) => readSingle(await apiRequest(`/api/v1/customers/${encodeURIComponent(id)}`, { method: 'PATCH', body }))
+export async function deleteCustomer(id: string, key: string): Promise<void> {
+  const result = await apiRequest(`/api/v1/customers/${encodeURIComponent(id)}`, { method: 'DELETE', idempotencyKey: key })
+  if (!result || typeof result !== 'object' || !('success' in result) || result.success !== true
+    || !('id' in result) || result.id !== id) throw invalid()
+}

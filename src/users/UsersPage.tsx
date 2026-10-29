@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type F
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { useResource } from '../hooks/useResource'
-import { getUser, listUsers, type ManagedUser, type UserFilter } from '../services/users'
+import { deleteUser, getUser, listUsers, type ManagedUser, type UserFilter } from '../services/users'
+import { DeleteRecordAction } from '../components/DeleteRecordAction'
 import { Pagination } from '../finance/Pagination'
 import { UserForm } from './UserForm'
 import { PasswordReset } from './PasswordReset'
@@ -10,13 +11,21 @@ import './users.css'
 const date = new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', dateStyle: 'medium', timeStyle: 'short' })
 const subscribe = (notify: () => void) => { window.addEventListener('hashchange', notify); return () => window.removeEventListener('hashchange', notify) }
 const href = (id: string) => '#/calisanlar/' + encodeURIComponent(id)
-function UserList() {
+function UserList({ actor }: { actor: string }) {
   const [q, setQ] = useState(''), [search, setSearch] = useState(''), [status, setStatus] = useState<UserFilter['status']>('all'), [page, setPage] = useState(1)
   const load = useCallback(() => listUsers({ q: search, status, page, pageSize: 20 }), [search, status, page])
   const { result, retry } = useResource(`${search}:${status}:${page}`, load)
+  const [notice, setNotice] = useState('')
+  function deleted() {
+    setNotice('Hesap kalıcı olarak silindi; mevcut oturumları geçersiz kılındı.')
+    if (page > 1 && result?.data?.data.length === 1) setPage(page - 1)
+    else retry()
+    requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true }))
+  }
   function submit(event: FormEvent) { event.preventDefault(); setSearch(q.trim()); setPage(1); if (search === q.trim()) retry() }
   return <>
     <PageHeader title="Çalışanlar" description="Kullanıcı hesapları, roller ve oturum güvenliği." actions={<a className="ui-button ui-button--primary" href="#/calisanlar/yeni">Çalışan ekle</a>} />
+    {notice && <p className="user-success" role="status">{notice}</p>}
     <form className="user-filters" onSubmit={submit}><Input label="Kullanıcı adı ara" type="search" value={q} maxLength={100} onChange={event => setQ(event.target.value)} />
       <Select label="Hesap durumu filtresi" value={status} onChange={event => { setStatus(event.target.value as UserFilter['status']); setPage(1) }}><option value="all">Tümü</option><option value="active">Aktif</option><option value="inactive">Pasif</option></Select>
       <Button variant="secondary" type="submit">Ara</Button></form>
@@ -25,7 +34,18 @@ function UserList() {
         <caption className="visually-hidden">Çalışan hesapları</caption><thead><tr><th>Kullanıcı adı</th><th>Rol</th><th>Hesap durumu</th><th>Oluşturulma</th><th>İşlem</th></tr></thead>
         <tbody>{result.data.data.map(user => <tr key={user.id}><td data-label="Kullanıcı adı"><a className="text-link" href={href(user.id)}>{user.username}</a></td>
           <td data-label="Rol">{user.role === 'admin' ? 'Admin' : 'Çalışan'}</td><td data-label="Hesap durumu"><Badge tone={user.is_active ? 'success' : 'neutral'}>{user.is_active ? 'Aktif' : 'Pasif'}</Badge></td>
-          <td data-label="Oluşturulma"><time dateTime={user.created_at}>{date.format(new Date(user.created_at))}</time></td><td><a className="ui-button ui-button--ghost" href={href(user.id) + '/duzenle'} aria-label={user.username + ' hesabını düzenle'}>Düzenle</a></td></tr>)}</tbody>
+          <td data-label="Oluşturulma"><time dateTime={user.created_at}>{date.format(new Date(user.created_at))}</time></td><td>
+            <details className="record-actions-menu" onKeyDown={event => {
+              if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() }
+            }}><summary aria-label={`${user.username} hesap işlemleri`}>İşlemler</summary>
+              <div className="record-actions-options"><a className="ui-button ui-button--ghost" href={href(user.id) + '/duzenle'}>Düzenle</a>
+                <DeleteRecordAction recordName={user.username} title="Hesap kalıcı olarak silinsin mi?"
+                  description="Yalnızca geçmiş finansal veya bağlı denetim kaydı bulunmayan hesaplar silinebilir. Tüm mevcut oturumları geçersiz olur. Bu işlem geri alınamaz."
+                  disabledReason={user.id === actor ? 'Kendi hesabınızı silemezsiniz.' : undefined}
+                  remove={key => deleteUser(user.id, key)} onDeleted={deleted} />
+              </div>
+            </details>
+          </td></tr>)}</tbody>
       </table></div>}
       <Pagination page={result.data.pagination} label="Çalışan sayfaları" onPage={setPage} />
     </>}
@@ -55,5 +75,5 @@ export function UsersPage({ actor }: { actor: string }) {
   function saved(user: ManagedUser) { setNotice({ id: user.id, text: route[2] === 'yeni' ? 'Hesap oluşturuldu.' : route[3] === 'parola' ? 'Parola sıfırlandı; önceki oturumlar kapatıldı.' : 'Hesap güncellendi.' }); window.location.hash = href(user.id) }
   if (route[2] === 'yeni') return <UserForm actor={actor} onSaved={saved} />
   if (route[2]) return <UserRecord key={hash} id={route[2]} mode={route[3]} actor={actor} saved={saved} notice={notice?.id === route[2] ? notice.text : undefined} />
-  return <UserList />
+  return <UserList actor={actor} />
 }
