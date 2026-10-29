@@ -43,13 +43,13 @@ Ek olarak müşteri ve satış detaylarında, kayıtlı adres için kullanıcı 
 ## 📸 Ekran Görüntüleri
 
 ### 📊 Genel Bakış
-![AKÇAT Dashboard](screenshots/dashboard.png)
+![AKÇAT Dashboard](docs/screenshots/dashboard.png)
 
 ### 👥 Müşteri Yönetimi
-![AKÇAT Müşteriler](screenshots/customers.png)
+![AKÇAT Müşteriler](docs/screenshots/customers.png)
 
 ### 💳 Tahsilat Yönetimi
-![AKÇAT Tahsilatlar](screenshots/payments.png)
+![AKÇAT Tahsilatlar](docs/screenshots/payments.png)
 <!--
 Gerçek ekran görüntüleri eklendiğinde bu bölümü aşağıdaki düzenle değiştirin.
 Önerilen klasör: docs/screenshots/
