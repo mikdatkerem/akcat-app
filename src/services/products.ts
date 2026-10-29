@@ -35,3 +35,8 @@ export async function listProducts(filter: ProductFilter): Promise<ProductList> 
 export const getProduct = async (id: string) => readSingle(await apiRequest(`/api/v1/products/${encodeURIComponent(id)}`))
 export const createProduct = async (body: ProductInput, key: string) => readSingle(await apiRequest('/api/v1/products', { method: 'POST', body, idempotencyKey: key }))
 export const updateProduct = async (id: string, body: ProductPatch) => readSingle(await apiRequest(`/api/v1/products/${encodeURIComponent(id)}`, { method: 'PATCH', body }))
+export async function deleteProduct(id: string, key: string): Promise<void> {
+  const result = await apiRequest(`/api/v1/products/${encodeURIComponent(id)}`, { method: 'DELETE', idempotencyKey: key })
+  if (!result || typeof result !== 'object' || !('success' in result) || result.success !== true
+    || !('id' in result) || result.id !== id) throw invalid()
+}

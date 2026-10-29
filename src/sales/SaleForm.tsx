@@ -1,7 +1,7 @@
 import { rememberKey } from '../finance/pendingKey'
 import { RecoveryNotice } from '../finance/RecoveryNotice'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Badge, Button, Card, ErrorState, Input, Select } from '../components/ui'
+import { Badge, Button, Card, ErrorState, Icon, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { listCustomers } from '../services/customers'
 import { listProducts } from '../services/products'
@@ -94,20 +94,23 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
           const customPrice = price !== undefined && price !== line.product.current_price_kurus
           return <li key={line.product.id}>
             <div className="sale-line-name"><strong>{line.product.name}</strong>
-              <small>Liste fiyatı: {customPrice ? <del className="money">{formatMoney(line.product.current_price_kurus)}</del> : <span className="money">{formatMoney(line.product.current_price_kurus)}</span>}</small>
-              {customPrice && <><small>Satış fiyatı: <span className="money">{formatMoney(price!)}</span></small>
-                <div className="sale-price-indicator"><Badge tone="info">Özel fiyat</Badge>
-                  <Button variant="ghost" disabled={locked} aria-label={`${line.product.name} liste fiyatına dön`}
-                    onClick={() => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: priceInputFromKurus(value.product.current_price_kurus) } : value)); setInvalid(current => ({ ...current, items: undefined })) }}>Liste fiyatına dön</Button>
-                </div></>}
+              <small>Liste fiyatı: <span className="money">{formatMoney(line.product.current_price_kurus)}</span></small>
             </div>
-            <Input label="Birim fiyat (₺)" aria-label={`${line.product.name} birim fiyatı (₺)`} type="text" inputMode="decimal" name={`unit-price-${index}`}
-              value={line.unitPrice} maxLength={32} required error={priceError} disabled={locked}
-              onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
-            <Input label={`${index + 1}. ürün miktarı`} type="text" inputMode="numeric" name={`quantity-${index}`} value={line.quantity} maxLength={16} required error={message} disabled={locked}
+            <div className="sale-line-price">
+              <Input label="Birim fiyat (₺)" aria-label={`${line.product.name} birim fiyatı (₺)`} type="text" inputMode="decimal" name={`unit-price-${index}`}
+                value={line.unitPrice} maxLength={32} required error={priceError} disabled={locked}
+                onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
+              {customPrice && <div className="sale-price-indicator"><Badge tone="info">Özel fiyat</Badge>
+                <span className="sale-price-comparison money"><span className="visually-hidden">Liste fiyatı </span><del>{formatMoney(line.product.current_price_kurus)}</del>
+                  <span aria-hidden="true"> → </span><span className="visually-hidden">Satış fiyatı </span>{formatMoney(price!)}</span>
+                <Button variant="ghost" disabled={locked} aria-label={`${line.product.name} liste fiyatına dön`}
+                  onClick={() => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: priceInputFromKurus(value.product.current_price_kurus) } : value)); setInvalid(current => ({ ...current, items: undefined })) }}>Sıfırla</Button>
+              </div>}
+            </div>
+            <Input label="Miktar" aria-label={`${line.product.name} miktarı`} type="text" inputMode="numeric" name={`quantity-${index}`} value={line.quantity} maxLength={16} required error={message} disabled={locked}
               onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, quantity: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
             <div className="sale-line-total"><small>Satır toplamı</small><strong className="money">{amount === undefined ? '—' : formatMoney(amount)}</strong></div>
-            <Button variant="ghost" disabled={locked} onClick={() => setLines(current => current.filter(value => value.product.id !== line.product.id))} aria-label={`${line.product.name} kaldır`}>Kaldır</Button>
+            <div className="sale-line-remove"><Button variant="ghost" disabled={locked} title="Satırdan kaldır" onClick={() => setLines(current => current.filter(value => value.product.id !== line.product.id))} aria-label={`${line.product.name} satıştan kaldır`}><Icon name="trash" /></Button></div>
           </li>
         })}</ul>}
         {invalid.items && <p className="sale-validation" role="alert" tabIndex={-1} data-sale-validation>{invalid.items}</p>}

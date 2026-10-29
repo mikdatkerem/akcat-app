@@ -13,6 +13,15 @@
 .product-name, .product-action { display: inline-flex; align-items: center; min-height: var(--touch-target); color: var(--color-primary-active); text-decoration: underline; text-underline-offset: 3px; }
 .product-name { font-size: var(--font-size-card); font-weight: var(--font-weight-semibold); }
 .product-action { min-width: var(--touch-target); }
+.product-table td:last-child { min-width: 0; }
+.product-actions-menu summary { cursor: pointer; min-height: var(--touch-target); padding-block: var(--space-3); color: var(--color-primary-active); overflow-wrap: anywhere; }
+.product-actions-options { display: grid; gap: var(--space-2); padding-block: var(--space-2); }
+.product-actions-options .ui-button { width: 100%; padding-inline: var(--space-2); text-decoration: none; }
+.product-action-error { color: var(--color-danger); overflow-wrap: anywhere; }
+.product-delete-dialog { width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: auto; padding: var(--space-5); border: var(--border-default); border-radius: var(--radius-lg); color: var(--color-text); background: var(--color-surface); }
+.product-delete-dialog::backdrop { background: rgb(15 23 42 / 32%); }
+.product-delete-dialog h2 { margin-top: 0; font-size: var(--font-size-section); }
+.product-delete-name { overflow-wrap: anywhere; }
 .product-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-5); }
 .product-pagination p { margin: 0; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
 .product-pagination > div { display: flex; flex-wrap: wrap; gap: var(--space-2); }

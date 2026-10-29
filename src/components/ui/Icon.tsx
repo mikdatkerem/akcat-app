@@ -9,6 +9,7 @@ const paths = {
   products: <><path d="m12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5" /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
   close: <path d="m6 6 12 12M18 6 6 18" />,
+  trash: <><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M5 6l1 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-14M10 10v7M14 10v7" /></>,
   droplet: <path d="M12 2C9 6 5 10 5 14a7 7 0 0 0 14 0c0-4-4-8-7-12Z" />,
   arrow: <path d="m9 5 7 7-7 7" />,
   navigation: <path d="m21 3-6 18-4-8-8-4 18-6Z" />,

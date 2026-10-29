@@ -26,6 +26,12 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string, method: string) {
+  const productErrors: Record<string, string> = {
+    PRODUCT_IN_USE: 'Bu ürün geçmiş satış kayıtlarında kullanıldığı için kalıcı olarak silinemez. Ürünü pasife alarak yeni satışlarda kullanılmasını engelleyebilirsiniz.',
+    PRODUCT_DELETED: 'Bu işlemle oluşturulan ürün daha sonra silinmiş. Ürün listesini yenileyin.',
+    PRODUCT_DELETE_CONFLICT: 'Ürün silinemedi. Listeyi yenileyip tekrar deneyin.',
+  }
+  if (productErrors[code]) return new ApiError(status, code, productErrors[code])
   const passwordErrors: Record<string, string> = {
     INVALID_PASSWORD_INPUT: 'Mevcut parolayı ve yeni parola politikasını kontrol edin. Yeni parola 15–128 karakter olmalı.',
     CURRENT_PASSWORD_INVALID: 'Mevcut parolanız hatalı.', PASSWORD_UNCHANGED: 'Yeni parola mevcut parolanızdan farklı olmalı.',

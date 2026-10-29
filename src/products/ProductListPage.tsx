@@ -6,10 +6,12 @@ import type { Role } from '../services/auth'
 import { formatMoney } from '../utils/format'
 import { useResource } from '../hooks/useResource'
 import { productHref, productListHref } from './routing'
+import { ProductActions } from './ProductActions'
 
 export function ProductListPage({ filter, role }: { filter: ProductFilter; role: Role }) {
   const [search, setSearch] = useState(filter.q)
   const [status, setStatus] = useState(filter.status)
+  const [notice, setNotice] = useState('')
   const load = useCallback(() => listProducts(filter), [filter])
   const { result, retry } = useResource(JSON.stringify(filter), load)
   function searchProducts(event: FormEvent) {
@@ -18,9 +20,19 @@ export function ProductListPage({ filter, role }: { filter: ProductFilter; role:
     if (search.trim() === filter.q && status === filter.status && filter.page === 1) retry()
   }
   const list = result?.data
+  function changed(message: string, removed: boolean) {
+    setNotice(message)
+    if (filter.page > 1 && list?.data.length === 1 && (removed || filter.status !== 'all')) {
+      window.location.hash = productListHref(filter.q, filter.status, filter.page - 1, filter.pageSize)
+    } else {
+      retry()
+      if (removed) requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true }))
+    }
+  }
   return <>
     <PageHeader title="Ürünler" description="Güncel satış fiyatları ve aktiflik durumları."
       actions={role === 'admin' ? <a className="ui-button ui-button--primary" href="#/urunler/yeni">Ürün ekle</a> : undefined} />
+    {notice && <p className="product-success" role="status">{notice}</p>}
     <form className="product-filters" onSubmit={searchProducts} role="search" aria-label="Ürün arama">
       <Input label="Ürün adı" name="q" type="search" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />
       <Select label="Durum" value={status} onChange={event => setStatus(event.target.value as ProductFilter['status'])}>
@@ -38,7 +50,7 @@ export function ProductListPage({ filter, role }: { filter: ProductFilter; role:
               <td><a className="product-name" href={productHref(product.id)}>{product.name}</a></td>
               <td data-label="Satış fiyatı"><span className="money">{formatMoney(product.current_price_kurus)}</span></td>
               <td><Badge tone={product.is_active ? 'success' : 'neutral'}>{product.is_active ? 'Aktif' : 'Pasif'}</Badge></td>
-              <td>{role === 'admin' ? <a className="product-action" href={productHref(product.id) + '/duzenle'} aria-label={`${product.name} ürününü düzenle`}>Düzenle</a>
+              <td>{role === 'admin' ? <ProductActions product={product} onChanged={changed} />
                 : <a className="product-action" href={productHref(product.id)} aria-label={`${product.name} detaylarını görüntüle`}>Detay</a>}</td>
             </tr>)}</tbody>
           </table>
