@@ -9,7 +9,7 @@ export function ReportFilters({ mode, filter, retry }: { mode: ReportMode; filte
   function submit(event: FormEvent) {
     event.preventDefault()
     if (mode !== 'receivables' && period === 'custom' && (!from || !to || from > to)) { setError('Geçerli bir başlangıç ve bitiş tarihi girin.'); return }
-    const next: ReportFilter = { ...filter, period, page: 1, q: search.trim(), view: mode === 'sales' ? view : 'sales',
+    const next: ReportFilter = { ...filter, period, page: 1, q: mode === 'payments' ? undefined : search.trim(), view: mode === 'sales' ? view : 'sales',
       from: period === 'custom' ? from : undefined, to: period === 'custom' ? to : undefined }
     const href = reportsHref(mode, next); setError(''); if (window.location.hash === href) retry(); window.location.hash = href
   }
@@ -25,7 +25,7 @@ export function ReportFilters({ mode, filter, retry }: { mode: ReportMode; filte
       {mode === 'sales' && <Select label="Satış raporu görünümü" value={view} onChange={event => setView(event.target.value as NonNullable<ReportFilter['view']>)}>
         <option value="sales">Geçerli satışlar</option><option value="cancelled">İptal edilen satışlar</option><option value="items">Satış kalemleri</option><option value="products">Ürün bazında</option>
       </Select>}
-      <Input label={mode === 'employees' ? 'Çalışan ara' : mode === 'sales' && view === 'products' ? 'Ürün adı ara' : 'Müşteri adı ara'} type="search" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />
+      {mode !== 'payments' && <Input label={mode === 'employees' ? 'Çalışan ara' : mode === 'sales' && view === 'products' ? 'Ürün adı ara' : 'Müşteri adı ara'} type="search" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />}
       <Button type="submit" variant="secondary">Raporu Getir</Button>
     </form>
     {error && <p className="report-error" role="alert">{error}</p>}

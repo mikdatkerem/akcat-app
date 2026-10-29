@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Button, Card, ErrorState, Select, Textarea } from '../components/ui'
+import { Button, Card, ErrorState, HelpDisclosure, Select, Textarea } from '../components/ui'
 import { createCorrection, type CorrectionInput, type CorrectionType } from '../services/corrections'
 import { useOperation } from './operation'
 import { typeLabels } from './presentation'
@@ -19,7 +19,12 @@ export function CorrectionForm({ actor, target, id, onSaved }: { actor: string; 
   return <Card title="Düzeltilecek işlem">
     <p className="correction-target">{target === 'sale' ? 'Satış' : 'Tahsilat'} · {id}</p>
     <a className="text-link" href={target === 'sale' ? '#/satislar/' + id : '#/tahsilatlar'}>İlgili kaydı görüntüle</a>
-    <p className="sale-help">Talep oluşturmak finansal kayıtları değiştirmez. Tam hatalı tahsilat ters kaydı veya fiilen yapılmış harici iade admin tarafından uygulanabilir. Ödemeli satış, bütün ödemeleri bu süreçlerle kapatıldıktan sonra ayrı taleple iptal edilebilir. Tutar/yöntem değiştirme ve kısmi düzeltme desteklenmez.</p>
+    <p className="sale-help">Talep oluşturmak finansal kayıtları değiştirmez; admin onayı gerekir.</p>
+    <HelpDisclosure title="Hangi düzeltmeler yapılabilir?">
+      <p>Tam hatalı tahsilat ters kaydı veya fiilen yapılmış harici iade admin tarafından uygulanabilir.</p>
+      <p>Ödemeli satış, bütün ödemeleri bu süreçlerle kapatıldıktan sonra ayrı taleple iptal edilebilir.</p>
+      <p>Tutar/yöntem değiştirme ve kısmi düzeltme desteklenmez.</p>
+    </HelpDisclosure>
     <form className="correction-form" onSubmit={submit}>
       <Select label="Düzeltme türü" value={type} disabled={locked} onChange={event => setType(event.target.value as CorrectionType)}>
         {Object.entries(typeLabels).filter(([key]) => key.startsWith(target + '_')).map(([key, label]) => <option key={key} value={key}>{label}</option>)}

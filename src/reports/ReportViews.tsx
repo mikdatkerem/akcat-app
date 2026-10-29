@@ -1,7 +1,7 @@
 import { AdjustmentMetrics } from './AdjustmentMetrics'
 import { AdjustmentHistory } from '../finance/AdjustmentHistory'
 import { useCallback } from 'react'
-import { ErrorState, LoadingState } from '../components/ui'
+import { ErrorState, HelpDisclosure, LoadingState } from '../components/ui'
 import { getDebtReport, getEmployeesReport, getPaymentsReport, getSalesReport, type ReportFilter, type ReportItem, type ReportProduct } from '../services/reports'
 import type { SaleSummary } from '../services/sales'
 import { useResource } from '../hooks/useResource'
@@ -16,13 +16,17 @@ import { reportsHref } from './routing'
 
 export function PaymentsReport({ filter }: { filter: ReportFilter }) {
   const load = useCallback(() => getPaymentsReport(filter), [filter]), { result, retry } = useResource(JSON.stringify(filter), load)
-  return <><p className="report-notice">Nakit Tahsilat, seçilen dönemde alınan geçerli nakit ödemelerdir. Açılış bakiyesi, kasa çıkışları ve sayım bulunmadığından fiziksel kasa bakiyesi değildir.</p>
+  return <><p className="report-notice">Nakit tahsilat, fiziksel kasa bakiyesi değildir.</p>
     <ReportFilters mode="payments" filter={filter} retry={retry} />
     {!result ? <LoadingState label="Tahsilat raporu yükleniyor…" /> : result.error ? <ErrorState title="Tahsilat raporu yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       <RangeNote range={result.data.range} /><Metrics values={[
         { key: 'payments_total', label: 'Toplam tahsilat', value: result.data.summary.payments_total_kurus },
         { key: 'cash', label: 'Nakit Tahsilat', value: result.data.summary.cash_kurus }, { key: 'card', label: 'Kart tahsilatı', value: result.data.summary.card_kurus }, { key: 'bank', label: 'Banka tahsilatı', value: result.data.summary.bank_kurus },
-      ]} /><AdjustmentMetrics totals={result.data.adjustments} methods /><p className="report-help">Toplamlar seçili dönem ve varsa çalışanın tamamını kapsar; müşteri araması yalnızca hareket listesini filtreler.</p>
+      ]} /><AdjustmentMetrics totals={result.data.adjustments} methods />
+      <HelpDisclosure title="Tahsilat raporunun kapsamı">
+        <p>Nakit tahsilat, seçilen dönemde alınan geçerli nakit ödemelerdir. Açılış bakiyesi, kasa çıkışları ve sayım bulunmadığından fiziksel kasa bakiyesi değildir.</p>
+        <p>Toplamlar seçili dönem ve varsa çalışanın tamamını kapsar.</p>
+      </HelpDisclosure>
       <ReportTable rows={result.data.data} rowKey={row => row.id} label="Geçerli tahsilat hareketleri" columns={[
         { label: 'Tarih', cell: row => saleDate(row.created_at) }, { label: 'Müşteri', cell: row => <a className="text-link" href={customerHref(row.customer_id)}>{row.customer_name}</a> },
         { label: 'Tutar', cell: row => <span className="money">{formatMoney(row.amount_kurus)}</span> }, { label: 'Yöntem', cell: row => methodLabels[row.method] },
@@ -39,7 +43,10 @@ export function SalesReport({ filter }: { filter: ReportFilter }) {
       <RangeNote range={result.data.range} /><Metrics values={[
         { key: 'sales_total', label: 'Geçerli satış toplamı', value: result.data.summary.sales_total_kurus }, { key: 'sales_count', label: 'Geçerli satış adedi', value: result.data.summary.sales_count, money: false },
         { key: 'cancelled_total', label: 'İptal edilen satış toplamı', value: result.data.summary.cancelled_total_kurus }, { key: 'cancelled_count', label: 'İptal edilen satış adedi', value: result.data.summary.cancelled_count, money: false },
-      ]} /><p className="report-help">Toplamlar seçili dönem ve varsa çalışanın tamamını kapsar; arama listeyi filtreler. İptaller satışın oluşturulma döneminde ayrı gösterilir. Ürün adları ve fiyatları satış anındaki kayıtlardır.</p>
+      ]} /><p className="report-help">Arama yalnızca listeyi filtreler.</p><HelpDisclosure title="Satış raporunun kapsamı">
+        <p>Toplamlar seçili dönem ve varsa çalışanın tamamını kapsar; arama listeyi filtreler.</p>
+        <p>İptaller satışın oluşturulma döneminde ayrı gösterilir. Ürün adları ve fiyatları satış anındaki kayıtlardır.</p>
+      </HelpDisclosure>
       {filter.view === 'products' ? <ReportTable rows={result.data.data as ReportProduct[]} rowKey={row => JSON.stringify([row.product_id, row.product_name_snapshot, row.unit_price_kurus])} label="Ürün bazlı satışlar" columns={[
         { label: 'Satış anındaki ürün', cell: row => row.product_name_snapshot }, { label: 'Birim fiyat', cell: row => <span className="money">{formatMoney(row.unit_price_kurus)}</span> },
         { label: 'Miktar', cell: row => row.quantity }, { label: 'Satış tutarı', cell: row => <span className="money">{formatMoney(row.total_kurus)}</span> },
@@ -64,7 +71,10 @@ export function DebtReport({ filter }: { filter: ReportFilter }) {
       <RangeNote range={result.data.range} current /><Metrics values={[
         { key: 'open_debt', label: 'Toplam açık borç', value: result.data.summary.total_debt_kurus }, { key: 'debtors', label: 'Borçlu müşteri', value: result.data.summary.debtor_count, money: false },
         { key: 'open_sales', label: 'Açık satış', value: result.data.summary.open_sales_count, money: false },
-      ]} /><p className="report-help">Toplamlar tüm müşterilerin güncel açık borcudur; arama listeyi filtreler. Satış ve ödeme sütunları yalnızca açık satışları kapsar. Vade bilgisi bulunmuyor.</p>
+      ]} /><p className="report-help">Güncel açık borç gösterilir; arama yalnızca listeyi filtreler.</p><HelpDisclosure title="Borç raporunun kapsamı">
+        <p>Toplamlar tüm müşterilerin güncel açık borcudur; arama listeyi filtreler.</p>
+        <p>Satış ve ödeme sütunları yalnızca açık satışları kapsar. Vade bilgisi bulunmuyor.</p>
+      </HelpDisclosure>
       <ReportTable rows={result.data.data} rowKey={row => row.id} label="Müşteri bazlı açık borçlar" columns={[
         { label: 'Müşteri', cell: row => <a className="text-link" href={customerHref(row.id)}>{row.name}</a> }, { label: 'Açık satış', cell: row => row.open_sales_count },
         { label: 'Açık satış toplamı', cell: row => <span className="money">{formatMoney(row.sales_total_kurus)}</span> }, { label: 'Geçerli ödemeler', cell: row => <span className="money">{formatMoney(row.paid_kurus)}</span> },
@@ -75,7 +85,9 @@ export function DebtReport({ filter }: { filter: ReportFilter }) {
 }
 export function EmployeesReport({ filter }: { filter: ReportFilter }) {
   const load = useCallback(() => getEmployeesReport(filter), [filter]), { result, retry } = useResource(JSON.stringify(filter), load)
-  return <><p className="report-help">Satış oluşturan ve tahsil eden kullanıcı ayrı hesaplanır. Seçili dönemde hareketi bulunan kullanıcılar gösterilir.</p><ReportFilters mode="employees" filter={filter} retry={retry} />
+  return <><HelpDisclosure title="Çalışan raporunun kapsamı">
+    <p>Satış oluşturan ve tahsil eden kullanıcı ayrı hesaplanır. Seçili dönemde hareketi bulunan kullanıcılar gösterilir.</p>
+  </HelpDisclosure><ReportFilters mode="employees" filter={filter} retry={retry} />
     {!result ? <LoadingState label="Çalışan raporu yükleniyor…" /> : result.error ? <ErrorState title="Çalışan raporu yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       <RangeNote range={result.data.range} /><ReportTable rows={result.data.data} rowKey={row => row.id} label="Çalışan bazlı satış ve tahsilat" columns={[
         { label: 'Çalışan / hareketler', cell: row => <><strong>{row.username}</strong><a className="text-link" href={reportsHref('sales', { ...filter, q: undefined, view: 'sales', created_by: row.id, page: 1 })}>Satış hareketleri</a>

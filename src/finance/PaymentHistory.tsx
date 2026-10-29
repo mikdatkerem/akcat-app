@@ -45,8 +45,10 @@ export function PaymentHistory({ customerId }: { customerId?: string }) {
             <div><dt>Yöntem</dt><dd>{methodLabels[payment.method]}</dd></div><div><dt>İşlemi yapan</dt><dd>{payment.created_by_username}</dd></div>
             <div><dt>Tarih</dt><dd>{saleDate(payment.created_at)}</dd></div>
             <div><dt>Güncel satış borcu</dt><dd className="money">{payment.sale_remaining_kurus === null ? 'Satışa bağlı değil' : formatMoney(payment.sale_remaining_kurus)}</dd></div></dl>
-          {payment.sale_id && <a className="finance-link" href={saleHref(payment.sale_id)}>İlgili satışı görüntüle</a>}
-          {payment.is_valid && <a className="finance-link" href={correctionHref('payment', payment.id)}>Tahsilat için düzeltme talebi</a>}
+          {(payment.sale_id || payment.is_valid) && <div className="finance-history-actions">
+            {payment.sale_id && <a className="finance-link" href={saleHref(payment.sale_id)}>İlgili satışı görüntüle</a>}
+            {payment.is_valid && <a className="finance-link" href={correctionHref('payment', payment.id)}>Tahsilat için düzeltme talebi</a>}
+          </div>}
         </li>)}</ul>}
       <Pagination page={result.data.pagination} label="Tahsilat sayfaları" onPage={setPage} />
     </>}

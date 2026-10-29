@@ -18,6 +18,7 @@
 .sale-line-total { min-width: 0; }
 .sale-line-total strong { display: block; margin-top: var(--space-2); }
 .sale-payment-fields, .sale-date-filters { display: grid; gap: var(--space-4); align-items: end; margin-top: var(--space-4); }
+.sale-payment-fields { align-items: start; }
 .sale-totals { margin: var(--space-5) 0 0; display: grid; gap: var(--space-3); }
 .sale-totals > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); }
 .sale-totals dd { margin: 0; font-weight: var(--font-weight-semibold); }

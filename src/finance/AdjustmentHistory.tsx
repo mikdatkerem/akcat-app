@@ -1,6 +1,6 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import { sessionStore } from '../auth/sessionStore'
-import { Card, EmptyState, ErrorState, LoadingState } from '../components/ui'
+import { Card, EmptyState, ErrorState, HelpDisclosure, LoadingState } from '../components/ui'
 import { listAdjustments, adjustmentLabels, type AdjustmentFilter } from '../services/adjustments'
 import { useResource } from '../hooks/useResource'
 import { formatMoney } from '../utils/format'
@@ -13,7 +13,9 @@ export function AdjustmentHistory({ filter }: { filter: Omit<AdjustmentFilter, '
   const load = useCallback(() => listAdjustments({ ...filter, page, pageSize: 10 }), [filter, page])
   const { result, retry } = useResource(key + ':' + page, load)
   return <Card title="Ters kayıt ve harici iade geçmişi">
-    <p className="sale-help">İadeler normal tahsilat değildir. Kayıt tarihi adminin uygulama/teyit tarihidir; sistem para transferi yapmaz.</p>
+    <HelpDisclosure title="Düzeltme geçmişi hakkında">
+      <p>İadeler normal tahsilat değildir. Kayıt tarihi adminin uygulama/teyit tarihidir; sistem para transferi yapmaz.</p>
+    </HelpDisclosure>
     {!result ? <LoadingState label="Finansal düzeltmeler yükleniyor…" /> : result.error ? <ErrorState title="Düzeltme geçmişi yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       {result.data.data.length === 0 ? <EmptyState title="Finansal düzeltme bulunamadı" description="Uygulanan tam ters kayıtlar ve teyitli harici iadeler burada gösterilir." />
         : <ul className="finance-history">{result.data.data.map(row => <li key={row.id}>
