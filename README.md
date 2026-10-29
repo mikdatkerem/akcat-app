@@ -154,6 +154,10 @@ API_PROXY_TARGET=http://localhost:8787
 
 API gizli bilgilerini veya oturum anahtarlarını **`VITE_*` değişkenlerine koymayın**; bu değerler tarayıcı paketinde görünür olabilir. Üretim ortamının origin, cookie ve servis bağlantısı ayarları ayrıca yapılandırılmalıdır.
 
+## Satışta özel fiyat
+
+Her kalemde TL birim fiyatı düzenlenebilir; “Özel fiyat” ve liste fiyatına dönüş desteklenir. Admin/employee aynı satış yetkisini kullanır; employee katalog fiyatı düzenleyemez. Fiyat/miktar/ödeme taslağı kullanıcı kapsamlı bellekte kalır; belirsiz yanıtta aynı gövde ve anahtar korunur. Detay gerçek/liste fiyatlarını ve işaretli farkları gösterir; eski liste fiyatı tahmin edilmez. **Web'den önce API ve `0003_sale_item_list_price.sql` migration'ı operatör tarafından hazırlanmalıdır.** Sözleşme ve manuel kontrol sırası: [SALES.md](../akcat-api/docs/SALES.md).
+
 ## Kalite kontrolleri
 
 ```bash

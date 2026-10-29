@@ -50,8 +50,8 @@ function httpError(status: number, code: string, method: string) {
   if (code === 'INVALID_FINANCE_INPUT') return new ApiError(status, code, 'Müşteriyi, satışı, tutarı, ödeme yöntemini ve filtreleri kontrol edin.')
   if (code === 'PAYMENT_NOT_ALLOWED') return new ApiError(status, code, 'Tahsilat kaydedilmedi. Müşteri/satış eşleşmesini ve güncel kalan borcu kontrol edin.')
   if (code === 'SALE_NOT_FOUND') return new ApiError(status, code, 'Satış bulunamadı.')
-  if (code === 'INVALID_SALE_INPUT') return new ApiError(status, code, 'Müşteriyi, miktarları, ödeme ve filtre alanlarını kontrol edin.')
-  if (code === 'SALE_NOT_ALLOWED') return new ApiError(status, code, 'Satış kaydedilmedi. Müşteri/ürün aktifliğini, güncel fiyatları ve ödeme tutarını kontrol edin.')
+  if (code === 'INVALID_SALE_INPUT') return new ApiError(status, code, 'Müşteriyi, miktarları, sıfırdan büyük birim fiyatları ve ödeme alanlarını kontrol edin. Fiyat en fazla iki ondalık basamak içermeli.')
+  if (code === 'SALE_NOT_ALLOWED') return new ApiError(status, code, 'Satış kaydedilmedi. Müşteri/ürün aktifliğini, pozitif birim fiyatları, tutar sınırlarını ve ödeme tutarını kontrol edin.')
   const message = status === 401 ? (code === 'INVALID_CREDENTIALS' ? 'Kullanıcı adı veya parola hatalı.' : 'Oturumunuz geçersiz veya süresi dolmuş. Lütfen tekrar giriş yapın.')
     : status === 403 ? 'Bu işlem için yetkiniz yok veya oturum güvenlik doğrulaması geçersiz. Oturumunuzu kontrol edin.'
       : status === 429 ? 'Çok fazla giriş denemesi. Lütfen bir dakika sonra tekrar deneyin.'

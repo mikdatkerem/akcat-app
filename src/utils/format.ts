@@ -16,10 +16,11 @@ export function priceInputFromKurus(kurus: number): string {
 }
 
 /** Tam sayı kuruşu, hesaplama/yuvarlama yapmadan Türkiye biçiminde gösterir. */
-export function formatMoney(kurus: number): string {
-  if (!Number.isSafeInteger(kurus)) throw new RangeError('Tutar güvenli bir tam sayı kuruş olmalıdır.')
-  const absolute = BigInt(Math.abs(kurus))
+export function formatMoney(kurus: number | bigint): string {
+  if (typeof kurus !== 'bigint' && !Number.isSafeInteger(kurus)) throw new RangeError('Tutar güvenli bir tam sayı kuruş olmalıdır.')
+  const amount = BigInt(kurus)
+  const absolute = amount < 0n ? -amount : amount
   const whole = integerFormatter.format(absolute / 100n)
   const fraction = String(absolute % 100n).padStart(2, '0')
-  return `${kurus < 0 ? '-' : ''}${whole},${fraction}\u00a0₺`
+  return `${amount < 0n ? '-' : ''}${whole},${fraction}\u00a0₺`
 }

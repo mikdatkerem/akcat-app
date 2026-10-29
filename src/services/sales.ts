@@ -1,14 +1,14 @@
 import { ApiError, apiRequest } from './apiClient'
 
 export type PaymentMethod = 'cash' | 'card' | 'bank'
-export type SaleInput = { customer_id: string; items: { product_id: string; quantity: number }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
+export type SaleInput = { customer_id: string; items: { product_id: string; quantity: number; unit_price_kurus?: number }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
 export type SaleSummary = { id: string; customer_id: string; customer_name: string; created_by: string; created_by_username: string;
   status: 'completed' | 'cancelled'; total_kurus: number; paid_kurus: number; remaining_kurus: number;
   payment_status: 'paid' | 'partial' | 'credit'; created_at: string; updated_at: string }
 export type Sale = SaleSummary & { cancellation_eligibility: { allowed: boolean; expires_at: string | null; explanation: string };
   cancellation_history: { actor_user_id: string; username: string; created_at: string; reason: string; correction_id: string | null; approved_by: string | null }[];
   customer: { id: string; name: string; phone: string | null; address: string };
-  items: { id: string; product_id: string; product_name_snapshot: string; unit_price_kurus: number; quantity: number; line_total_kurus: number }[];
+  items: { id: string; product_id: string; product_name_snapshot: string; list_unit_price_kurus: number | null; unit_price_kurus: number; quantity: number; line_total_kurus: number }[];
   payments: { id: string; amount_kurus: number; method: PaymentMethod; created_at: string; created_by: string; created_by_username: string; is_initial: boolean }[] }
 export type SaleFilter = { customer_id?: string; from?: string; to?: string; page: number; pageSize: number }
 export type SaleList = { data: SaleSummary[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }
@@ -41,7 +41,10 @@ function single(value: unknown): Sale {
   let total = 0n, paid = 0n
   for (const value of row.items) {
     const item = record(value)
+    // Missing snapshots from older API versions/history are unknown, never inferred from today's catalog.
+    item.list_unit_price_kurus ??= null
     if (typeof item.id !== 'string' || typeof item.product_id !== 'string' || typeof item.product_name_snapshot !== 'string'
+      || (item.list_unit_price_kurus !== null && !money(item.list_unit_price_kurus))
       || !money(item.unit_price_kurus) || !money(item.quantity) || item.quantity === 0 || !money(item.line_total_kurus)
       || BigInt(item.unit_price_kurus) * BigInt(item.quantity) !== BigInt(item.line_total_kurus)) throw invalid()
     total += BigInt(item.line_total_kurus)

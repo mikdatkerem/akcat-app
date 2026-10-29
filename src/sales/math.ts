@@ -1,4 +1,14 @@
-// Preview calculations only; the API independently prices against the transaction's catalog state.
+import { parsePriceToKurus } from '../utils/format.ts'
+
+// Preview only: the API validates optional prices and recalculates every total atomically.
+export function unitPriceValue(text: string): number {
+  let value: number
+  try { value = parsePriceToKurus(text) }
+  catch { throw new RangeError('Birim fiyat pozitif olmalı, en fazla iki ondalık basamak içermeli ve desteklenen tutar sınırını aşmamalı.') }
+  if (value === 0) throw new RangeError('Birim fiyat sıfırdan büyük olmalı.')
+  return value
+}
+
 export function quantityValue(text: string): number {
   if (!/^\d{1,16}$/.test(text)) throw new RangeError('Miktar pozitif tam sayı olmalı.')
   const value = BigInt(text)

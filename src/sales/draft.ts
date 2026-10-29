@@ -4,7 +4,7 @@ import type { Product } from '../services/products'
 import type { PaymentMethod, SaleInput } from '../services/sales'
 import { sessionStore } from '../auth/sessionStore'
 
-export type DraftLine = { product: Product; quantity: string }
+export type DraftLine = { product: Product; quantity: string; unitPrice: string }
 type Draft = { actor: string; key: string; recovered: boolean; customer: Customer | null; lines: DraftLine[]; payment: string; method: PaymentMethod | ''; pending: SaleInput | null }
 let draft: Draft | undefined
 // Keep the draft across temporary auth checks/unmounts, scoped to the current user and browser memory only.

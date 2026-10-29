@@ -37,10 +37,24 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
         </dl>
       </Card>
       <Card title="Satılan ürünler">
-        <ul className="sale-snapshot-items">{sale.items.map(item => <li key={item.id}>
-          <div><strong>{item.product_name_snapshot}</strong><small>{item.quantity} adet × {formatMoney(item.unit_price_kurus)}</small></div>
-          <strong className="money">{formatMoney(item.line_total_kurus)}</strong>
-        </li>)}</ul>
+        <ul className="sale-snapshot-items">{sale.items.map(item => {
+          const customPrice = item.list_unit_price_kurus !== null && item.list_unit_price_kurus !== item.unit_price_kurus
+          const difference = item.list_unit_price_kurus === null ? null : BigInt(item.unit_price_kurus) - BigInt(item.list_unit_price_kurus)
+          const totalDifference = difference === null ? null : difference * BigInt(item.quantity)
+          return <li key={item.id}>
+            <div><div className="sale-price-indicator"><strong>{item.product_name_snapshot} × {item.quantity}</strong>
+              {customPrice && <Badge tone="info">Özel fiyat</Badge>}</div>
+              <small>Liste fiyatı: {item.list_unit_price_kurus === null ? 'Bu eski kayıtta bulunmuyor.' : customPrice
+                ? <del className="money">{formatMoney(item.list_unit_price_kurus)}</del> : <span className="money">{formatMoney(item.list_unit_price_kurus)}</span>}</small>
+              <small>Satış fiyatı: <span className="money">{formatMoney(item.unit_price_kurus)}</span></small>
+              {customPrice && difference !== null && totalDifference !== null && <>
+                <small>Birim fiyat farkı: <span className="money">{difference > 0n ? '+' : ''}{formatMoney(difference)}</span></small>
+                <small>Toplam fiyat farkı: <span className="money">{totalDifference > 0n ? '+' : ''}{formatMoney(totalDifference)}</span></small>
+              </>}
+            </div>
+            <div className="sale-line-total"><small>Satır toplamı</small><strong className="money">{formatMoney(item.line_total_kurus)}</strong></div>
+          </li>
+        })}</ul>
         <p className="sale-help">Satış anındaki ad ve fiyatlar gösterilir.</p>
       </Card>
       <Card title="Ödeme ve kalan borç">

@@ -1,15 +1,15 @@
 import { rememberKey } from '../finance/pendingKey'
 import { RecoveryNotice } from '../finance/RecoveryNotice'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Button, Card, ErrorState, Input, Select } from '../components/ui'
+import { Badge, Button, Card, ErrorState, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { listCustomers } from '../services/customers'
 import { listProducts } from '../services/products'
 import { createSale, type PaymentMethod, type Sale, type SaleInput } from '../services/sales'
 import { ApiError } from '../services/apiClient'
-import { formatMoney, parsePriceToKurus } from '../utils/format'
+import { formatMoney, parsePriceToKurus, priceInputFromKurus } from '../utils/format'
 import { RecordPicker } from './RecordPicker'
-import { lineTotal, quantityValue, sumLines } from './math'
+import { lineTotal, quantityValue, sumLines, unitPriceValue } from './math'
 import { clearSaleDraft, discardSaleDraft, saleDraft, updateSaleDraft } from './draft'
 
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'active' })
@@ -17,7 +17,8 @@ const products = (q: string, page: number) => listProducts({ q, page, pageSize: 
 export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sale) => void }) {
   const [draft] = useState(() => saleDraft(actor))
   const [customer, setCustomer] = useState(draft.customer)
-  const [lines, setLines] = useState(draft.lines)
+  const [lines, setLines] = useState(() => draft.lines.map(line => ({ ...line,
+    unitPrice: line.unitPrice ?? priceInputFromKurus(line.product.current_price_kurus) })))
   const [payment, setPayment] = useState(draft.payment)
   const [method, setMethod] = useState(draft.method)
   const [error, setError] = useState('')
@@ -28,8 +29,8 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   useEffect(() => { updateSaleDraft(actor, draft.key, { customer, lines, payment, method, pending }) }, [actor, draft.key, customer, lines, payment, method, pending])
   let total: number | undefined, paid: number | undefined, calculationError = ''
-  try { total = sumLines(lines.map(line => ({ price: line.product.current_price_kurus, quantity: line.quantity }))) }
-  catch (cause) { calculationError = cause instanceof Error ? cause.message : 'Miktarları kontrol edin.' }
+  try { total = sumLines(lines.map(line => ({ price: unitPriceValue(line.unitPrice), quantity: line.quantity }))) }
+  catch (cause) { calculationError = cause instanceof Error ? cause.message : 'Miktarları ve birim fiyatları kontrol edin.' }
   try { paid = parsePriceToKurus(payment) } catch { /* Shown as validation on submit. */ }
   const locked = busy || !!pending
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -40,7 +41,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
       const errors: typeof invalid = {}
       if (!customer) errors.customer = 'Bir müşteri seçin.'
       if (!lines.length) errors.items = 'En az bir ürün ekleyin.'
-      else if (calculationError || total === undefined) errors.items = calculationError || 'Ürün miktarlarını kontrol edin.'
+      else if (calculationError || total === undefined) errors.items = calculationError || 'Ürün miktarlarını ve birim fiyatları kontrol edin.'
       if (paid === undefined) errors.payment = 'Geçerli bir ödeme tutarı girin; en fazla iki ondalık basamak kullanın.'
       else if (total !== undefined && paid > total) errors.payment = 'Alınan ödeme satış toplamını aşamaz.'
       if (paid !== undefined && paid > 0 && !method) errors.method = 'Ödeme yöntemini seçin.'
@@ -50,7 +51,11 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
         requestAnimationFrame(() => { if (mounted.current) form.querySelector<HTMLElement>('[data-sale-validation], [aria-invalid="true"]')?.focus() })
         return
       }
-      body = { customer_id: customer.id, items: lines.map(line => ({ product_id: line.product.id, quantity: quantityValue(line.quantity) })),
+      body = { customer_id: customer.id, items: lines.map(line => {
+        const price = unitPriceValue(line.unitPrice)
+        return { product_id: line.product.id, quantity: quantityValue(line.quantity),
+          ...(price !== line.product.current_price_kurus ? { unit_price_kurus: price } : {}) }
+      }),
         payment: { amount_kurus: paid, method: paid > 0 ? method as PaymentMethod : null } }
     }
     try { rememberKey(actor, 'sale', key.current) } catch { setError('Tarayıcı işlem anahtarını koruyamadı. Kayıt gönderilmedi; önceki işlemi geçmişten kontrol edin ve tarayıcı ayarlarınızı inceleyin.'); return }
@@ -79,13 +84,26 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
         {invalid.customer && <p className="sale-validation" role="alert" tabIndex={-1} data-sale-validation>{invalid.customer}</p>}
       </Card>
       <Card title="Ürünler">
-        <RecordPicker label="Aktif ürün ara" load={products} onSelect={product => { setLines(current => [...current, { product, quantity: '1' }]); setInvalid(current => ({ ...current, items: undefined })) }}
+        <RecordPicker label="Aktif ürün ara" load={products} onSelect={product => { setLines(current => [...current, { product, quantity: '1', unitPrice: priceInputFromKurus(product.current_price_kurus) }]); setInvalid(current => ({ ...current, items: undefined })) }}
           describe={value => formatMoney(value.current_price_kurus)} disabled={locked || lines.length >= 50} excluded={lines.map(line => line.product.id)} />
         {lines.length > 0 && <ul className="sale-lines">{lines.map((line, index) => {
-          let amount: number | undefined, message: string | undefined
-          try { amount = lineTotal(line.product.current_price_kurus, line.quantity) } catch (cause) { message = cause instanceof Error ? cause.message : 'Geçersiz miktar.' }
+          let amount: number | undefined, price: number | undefined, priceError: string | undefined, message: string | undefined
+          try { price = unitPriceValue(line.unitPrice) } catch (cause) { priceError = cause instanceof Error ? cause.message : 'Geçersiz birim fiyat.' }
+          try { quantityValue(line.quantity); if (price !== undefined) amount = lineTotal(price, line.quantity) }
+          catch (cause) { message = cause instanceof Error ? cause.message : 'Geçersiz miktar.' }
+          const customPrice = price !== undefined && price !== line.product.current_price_kurus
           return <li key={line.product.id}>
-            <div className="sale-line-name"><strong>{line.product.name}</strong><small>Birim fiyat: <span className="money">{formatMoney(line.product.current_price_kurus)}</span></small></div>
+            <div className="sale-line-name"><strong>{line.product.name}</strong>
+              <small>Liste fiyatı: {customPrice ? <del className="money">{formatMoney(line.product.current_price_kurus)}</del> : <span className="money">{formatMoney(line.product.current_price_kurus)}</span>}</small>
+              {customPrice && <><small>Satış fiyatı: <span className="money">{formatMoney(price!)}</span></small>
+                <div className="sale-price-indicator"><Badge tone="info">Özel fiyat</Badge>
+                  <Button variant="ghost" disabled={locked} aria-label={`${line.product.name} liste fiyatına dön`}
+                    onClick={() => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: priceInputFromKurus(value.product.current_price_kurus) } : value)); setInvalid(current => ({ ...current, items: undefined })) }}>Liste fiyatına dön</Button>
+                </div></>}
+            </div>
+            <Input label="Birim fiyat (₺)" aria-label={`${line.product.name} birim fiyatı (₺)`} type="text" inputMode="decimal" name={`unit-price-${index}`}
+              value={line.unitPrice} maxLength={32} required error={priceError} disabled={locked}
+              onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
             <Input label={`${index + 1}. ürün miktarı`} type="text" inputMode="numeric" name={`quantity-${index}`} value={line.quantity} maxLength={16} required error={message} disabled={locked}
               onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, quantity: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
             <div className="sale-line-total"><small>Satır toplamı</small><strong className="money">{amount === undefined ? '—' : formatMoney(amount)}</strong></div>
@@ -108,7 +126,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
           <div><dt>Kalan borç</dt><dd className="money">{total === undefined || paid === undefined || paid > total ? '—' : formatMoney(total - paid)}</dd></div>
         </dl>
         {lines.length > 0 && paid === 0 && total !== undefined && total > 0 && <p className="sale-credit">Ödeme alınmadı. Satışın tamamı veresiye olarak kaydedilecek.</p>}
-        <p className="sale-help">Tutarlar önizlemedir. Kayıt anındaki güncel ürün fiyatları uygulanır.</p>
+        <p className="sale-help">Özel fiyat yalnızca bu satışa uygulanır. Diğer kalemlerde kayıt anındaki liste fiyatı kullanılır; toplamlar sunucuda doğrulanır.</p>
       </Card>
       {error && <ErrorState title="Satış kaydı doğrulanamadı" description={error} />}
       {pending && !busy && <p className="sale-credit" role="status">Sonuç belirsiz olabilir. Bilgiler korundu; sayfayı yenilemeden aynı satışı tekrar deneyin veya satış geçmişini kontrol edin.</p>}

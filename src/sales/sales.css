@@ -17,6 +17,7 @@
 .sale-lines .ui-button { align-self: end; }
 .sale-line-total { min-width: 0; }
 .sale-line-total strong { display: block; margin-top: var(--space-2); }
+.sale-price-indicator { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
 .sale-payment-fields, .sale-date-filters { display: grid; gap: var(--space-4); align-items: end; margin-top: var(--space-4); }
 .sale-payment-fields { align-items: start; }
 .sale-totals { margin: var(--space-5) 0 0; display: grid; gap: var(--space-3); }
@@ -49,7 +50,7 @@
 .sale-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-5); }
 .sale-pagination p { color: var(--color-text-secondary); margin: 0; font-variant-numeric: tabular-nums; }
 @media (min-width: 640px) {
-  .sale-lines li { grid-template-columns: minmax(0, 1fr) 130px minmax(100px, auto) auto; align-items: center; }
+  .sale-lines li { grid-template-columns: minmax(0, 1fr) minmax(0, 130px) minmax(0, 100px) minmax(0, auto) auto; align-items: start; }
   .sale-line-name, .sale-lines .ui-field { grid-column: auto; }
   .sale-line-total { text-align: right; }
   .sale-payment-fields, .sale-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
