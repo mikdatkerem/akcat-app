@@ -3,11 +3,13 @@ import { apiUrl } from '../config/api'
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
+  details?: unknown
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, details?: unknown) {
     super(message)
     this.status = status
     this.code = code
+    this.details = details
   }
 }
 
@@ -26,6 +28,10 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string, method: string) {
+  if (code === 'PRICE_CHANGED') return new ApiError(status, code, 'Ürün fiyatı değişti. Yeni tutarı kontrol edip satışı tekrar onaylayın.')
+  if (code === 'PRICE_CONFIRMATION_REQUIRED') return new ApiError(status, code, 'Liste fiyatlarını yenileyip satışı tekrar onaylayın.')
+  if (code === 'RECORD_VERSION_CONFLICT') return new ApiError(status, code, 'Bu kayıt siz düzenlerken başka bir kullanıcı tarafından değiştirildi. Güncel bilgileri yükleyip tekrar inceleyin.')
+  if (code === 'VERSION_REQUIRED') return new ApiError(status, code, 'Kayıt sürümü eksik. Uygulamayı yenileyip güncel kaydı açın.')
   const deletionErrors: Record<string, string> = {
     SELF_ACCOUNT_DELETE: 'Kendi hesabınızı silemezsiniz.',
     USER_FINANCIAL_HISTORY: 'Bu çalışan geçmiş finansal işlemlerde yer aldığı için kalıcı olarak silinemez. Hesabını pasife alabilirsiniz.',
@@ -116,7 +122,9 @@ export async function apiRequest(path: `/api/${string}`, options: {
   if (!response.ok) {
     const code = typeof data === 'object' && data !== null && 'error' in data && typeof data.error === 'object'
       && data.error !== null && 'code' in data.error && typeof data.error.code === 'string' ? data.error.code : 'HTTP_ERROR'
-    throw httpError(response.status, code, method)
+    const error = httpError(response.status, code, method)
+    if (typeof data === 'object' && data !== null && 'error' in data && typeof data.error === 'object' && data.error !== null && 'details' in data.error) error.details = data.error.details
+    throw error
   }
   return data
 }

@@ -4,7 +4,7 @@ import { useResource } from '../hooks/useResource'
 import { PageHeader } from '../pages/PageHeader'
 import { ApiError } from '../services/apiClient'
 import { changePassword, getAccount } from '../services/auth'
-import { checkSession, passwordChanged } from '../auth/sessionStore'
+import { checkSession, passwordChanged, sessionStore } from '../auth/sessionStore'
 import './account.css'
 
 const fields = [
@@ -21,6 +21,20 @@ function PasswordChange() {
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null)
   const [uncertain, setUncertain] = useState(false)
   const submitting = useRef(false), form = useRef<HTMLFormElement>(null)
+  async function verifyUncertainChange() {
+    if (submitting.current) return
+    submitting.current = true; setBusy(true)
+    try {
+      await checkSession()
+      const verified = sessionStore.getSnapshot()
+      // Explicit recovery only: an ordinary background recheck must retain forms.
+      // A successful /me confirms this original session has not been revoked by a change.
+      if (verified.status === 'authenticated' && !verified.error) {
+        setValues({ current: '', next: '', confirmation: '' }); setVisible({}); setErrors({})
+        setUncertain(false); setError(null)
+      }
+    } finally { submitting.current = false; setBusy(false) }
+  }
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (submitting.current || uncertain) return
@@ -58,7 +72,7 @@ function PasswordChange() {
           aria-label={`${field.label}: ${visible[field.key] ? 'gizle' : 'göster'}`} aria-controls={`account-${field.key}`} aria-pressed={!!visible[field.key]}
           onClick={() => setVisible(current => ({ ...current, [field.key]: !current[field.key] }))}>{visible[field.key] ? 'Gizle' : 'Göster'}</Button>} />)}
       {error && <ErrorState title="Parola değiştirilemedi" description={error} />}
-      {uncertain ? <Button variant="secondary" onClick={() => { void checkSession() }}>Oturumu kontrol et</Button>
+      {uncertain ? <Button variant="secondary" loading={busy} onClick={() => { void verifyUncertainChange() }}>Oturumu kontrol et</Button>
         : <Button type="submit" loading={busy} loadingText="Parola değiştiriliyor…">Parolayı değiştir</Button>}
     </form>
   </Card>

@@ -53,7 +53,7 @@ export async function verifyCorrections(browserPage, metadataPath) {
     await sql("UPDATE users SET role='admin' WHERE id=?", [meta.fixture.id])
     const product = await post('/api/v1/products', { name: 'İptal test ürünü', current_price_kurus: 1999 })
     await sql("UPDATE users SET role='employee' WHERE id=?", [meta.fixture.id])
-    const saleInput = { customer_id: customer.id, items: [{ product_id: product.id, quantity: 1 }], payment: { amount_kurus: 0, method: null } }
+    const saleInput = { customer_id: customer.id, items: [{ product_id: product.id, expected_list_price_kurus: product.current_price_kurus, quantity: 1 }], payment: { amount_kurus: 0, method: null } }
     const sale = await post('/api/v1/sales', saleInput)
     await page.goto(meta.origin + '/#/satislar/' + sale.id); await page.getByRole('button', { name: 'Satışı İptal Et', exact: true }).waitFor()
     await fit('sale')

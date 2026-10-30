@@ -7,6 +7,7 @@ import { productHref } from './routing'
 export function ProductActions({ product, onChanged }: { product: Product; onChanged: (message: string, removed: boolean) => void }) {
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState<'status' | 'delete' | null>(null)
   const [error, setError] = useState('')
+  const statusKey = useRef(crypto.randomUUID())
   const sending = useRef(false), mounted = useRef(false), deleteKey = useRef<string | null>(null)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   async function run(kind: 'status' | 'delete') {
@@ -17,7 +18,7 @@ export function ProductActions({ product, onChanged }: { product: Product; onCha
         // Keep the same key after a lost response, including closing/reopening this confirmation.
         deleteKey.current ??= crypto.randomUUID()
         await deleteProduct(product.id, deleteKey.current)
-      } else await updateProduct(product.id, { is_active: !product.is_active })
+      } else await updateProduct(product.id, { is_active: !product.is_active }, product.version, statusKey.current)
       if (mounted.current) {
         setConfirming(false)
         onChanged(kind === 'delete' ? 'Ürün kalıcı olarak silindi.' : product.is_active ? 'Ürün pasife alındı.' : 'Ürün aktifleştirildi.', kind === 'delete')

@@ -1,3 +1,4 @@
+import { PriceHistory } from './PriceHistory'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge, Card, ErrorState, LoadingState } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -30,6 +31,7 @@ function ProductRecord({ id, editing, role, notice, onSaved }: { id: string; edi
         <div><dt>Son güncelleme</dt><dd><time dateTime={product.updated_at}>{date.format(new Date(product.updated_at))}</time></dd></div>
       </dl>
     </Card>
+    {role === 'admin' && <PriceHistory id={id} />}
     <a className="text-link" href="#/urunler">Ürün listesine dön</a>
   </>
 }

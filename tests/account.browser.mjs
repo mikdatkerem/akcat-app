@@ -7,14 +7,14 @@ export async function verifyAccount(browserPage, metadataPath) {
   const context = await browserPage.context().browser().newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await context.newPage(); page.setDefaultTimeout(15000)
   page.on('pageerror', error => errors.push(error.message))
-  let changes = 0, network = '', reads = 0, hasCsrf = false
+  let changes = 0, network = '', reads = 0, hasCsrf = false, failMe = false
   const pass = label => { passed.push(label); console.log('PASS: ' + label) }
   const heading = name => page.getByRole('heading', { name, exact: true, level: 1 })
   await context.route('**/api/**', async route => {
     const request = route.request(), url = new URL(request.url())
     if (url.origin !== meta.origin) return route.continue()
     const headers = { ...request.headers(), 'X-Test-Key': meta.key }
-    if (url.pathname === '/api/v1/auth/me') reads++
+    if (url.pathname === '/api/v1/auth/me') { reads++; if (failMe) return route.abort('failed') }
     if (url.pathname.endsWith('/change-password') && request.method() === 'POST') {
       changes++; hasCsrf = /^[A-Za-z0-9_-]{43}$/.test(headers['x-csrf-token'] ?? '')
       const body = request.postDataJSON(); assert.deepEqual(Object.keys(body).sort(), ['current_password', 'new_password'])
@@ -60,6 +60,11 @@ export async function verifyAccount(browserPage, metadataPath) {
     await fill(meta.fixture.password, next); network = 'before'; await submit()
     await page.getByText(/Parola değişikliğinin sonucu doğrulanamadı/).waitFor(); assert.equal(await heading('Hesabım').count(), 1)
     assert.equal(await page.locator('#account-current').isDisabled(), true)
+    failMe = true
+    await page.getByRole('button', { name: 'Oturumu kontrol et', exact: true }).click()
+    await page.locator('.session-notice').getByRole('heading', { name: 'Oturum işlemi tamamlanamadı', exact: true }).waitFor()
+    assert.equal(await page.locator('#account-current').isDisabled(), true)
+    failMe = false
     await page.getByRole('button', { name: 'Oturumu kontrol et', exact: true }).click(); await page.locator('#account-current:not(:disabled)').waitFor()
     assert.equal(await page.locator('#account-current').inputValue(), '')
     pass('network failure makes no false logout/success claim; explicit real session check safely restores a fresh form')

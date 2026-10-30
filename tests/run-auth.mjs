@@ -1,3 +1,4 @@
+import { verifyReliability } from './reliability.browser.mjs'
 import { verifyAudit } from './audit.browser.mjs'
 import { verifyDirections } from './directions.browser.mjs'
 import { verifyUsers } from './users.browser.mjs'
@@ -22,7 +23,7 @@ const { chromium } = require('playwright')
 const browser = await chromium.launch({ channel: values.channel, headless: true })
 try {
   const page = await browser.newPage()
-  const suites = { auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections, reports: verifyReports, adjustments: verifyAdjustments, audit: verifyAudit, directions: verifyDirections, users: verifyUsers, account: verifyAccount }
+  const suites = { reliability: verifyReliability, auth: verifyAuth, customers: verifyCustomers, products: verifyProducts, sales: verifySales, finance: verifyFinance, corrections: verifyCorrections, reports: verifyReports, adjustments: verifyAdjustments, audit: verifyAudit, directions: verifyDirections, users: verifyUsers, account: verifyAccount }
   if (!Object.hasOwn(suites, values.suite)) throw new Error('Unknown test suite.')
   const result = await suites[values.suite](page, resolve(values.metadata))
   console.log(JSON.stringify(result, null, 2))

@@ -53,3 +53,9 @@
   .product-table td:nth-child(2), .product-table th:nth-child(2) { text-align: right; }
   .product-name { font-size: var(--font-size-body); }
 }
+
+.product-price-history { list-style: none; padding: 0; margin: var(--space-4) 0 0; }
+.product-price-history li { padding: var(--space-3) 0; border-bottom: var(--border-default); overflow-wrap: anywhere; }
+.product-price-history li:last-child { border-bottom: 0; }
+.product-price-history small { color: var(--color-text-secondary); }
+.product-price-history .money { text-align: left; white-space: normal; }

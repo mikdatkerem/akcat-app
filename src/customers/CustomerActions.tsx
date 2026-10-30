@@ -7,13 +7,14 @@ import { customerHref } from './routing'
 
 export function CustomerActions({ customer, onChanged }: { customer: Customer; onChanged: (message: string, removed: boolean) => void }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
+  const statusKey = useRef(crypto.randomUUID())
   const sending = useRef(false), mounted = useRef(false)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   async function toggleStatus() {
     if (sending.current) return
     sending.current = true; setBusy(true); setError('')
     try {
-      await updateCustomer(customer.id, { is_active: !customer.is_active })
+      await updateCustomer(customer.id, { is_active: !customer.is_active }, customer.version, statusKey.current)
       if (mounted.current) onChanged(customer.is_active ? 'Müşteri pasife alındı; yeni satış seçiminde gösterilmez.' : 'Müşteri yeniden aktifleştirildi.', false)
     } catch (cause) {
       if (mounted.current) setError(cause instanceof ApiError ? cause.message : 'Müşteri durumu doğrulanamadı. Listeyi yenileyin.')

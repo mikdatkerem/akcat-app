@@ -1,7 +1,7 @@
 import { ApiError, apiRequest } from './apiClient'
 
 export type PaymentMethod = 'cash' | 'card' | 'bank'
-export type SaleInput = { customer_id: string; items: { product_id: string; quantity: number; unit_price_kurus?: number }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
+export type SaleInput = { customer_id: string; items: { product_id: string; quantity: number; unit_price_kurus?: number; expected_list_price_kurus?: number }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
 export type SaleSummary = { id: string; customer_id: string; customer_name: string; created_by: string; created_by_username: string;
   status: 'completed' | 'cancelled'; total_kurus: number; paid_kurus: number; remaining_kurus: number;
   payment_status: 'paid' | 'partial' | 'credit'; created_at: string; updated_at: string }

@@ -1,3 +1,4 @@
+import { migrationSql } from '../../akcat-api/tests/migration-source.mjs'
 // Isolated browser-test environment. Uses the existing API test harness, never akcat-db.
 import { spawn } from 'node:child_process'
 import { randomBytes, randomUUID } from 'node:crypto'
@@ -9,7 +10,7 @@ import { createServer } from 'node:net'
 import { setTimeout as delay } from 'node:timers/promises'
 import { hashPassword } from '../../akcat-api/src/security/password.ts'
 
-if (!process.stdin.isTTY) {
+if (!process.stdin.isTTY && !process.argv.includes('--automation')) {
   console.error('Start the isolated browser-test environment in an interactive terminal so Enter can close it safely.')
   process.exit(1)
 }
@@ -68,6 +69,7 @@ try {
   // Verify the test database identity before starting either local process.
   const config = JSON.parse(await readFile(join(api, 'tests/wrangler.jsonc'), 'utf8'))
   if (config.d1_databases?.[0]?.database_id !== '11111111-1111-4111-8111-111111111111') throw new Error('Unexpected test database.')
+  if (config.d1_databases.length !== 1 || config.d1_databases[0].remote === true || config.main !== 'worker.ts') throw new Error('Remote or unexpected test binding rejected.')
   const apiPort = await freePort()
   const webPort = await freePort()
   const base = `http://127.0.0.1:${apiPort}`
@@ -80,7 +82,7 @@ try {
     const response = await fetch(base + path, { method: 'POST', headers: { 'X-Test-Key': key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     if (!response.ok) throw new Error('Isolated test setup failed.')
   }
-  await control('/__test/schema', { sql: (await Promise.all(['0001_initial_schema.sql', '0002_financial_adjustments.sql'].map(file => readFile(join(api, 'migrations', file), 'utf8')))).join('\n') })
+  await control('/__test/schema', { sql: await migrationSql() })
   // One random fixture in temporary test D1 only. No admin, public seed or persistent account.
   const fixture = { id: randomUUID(), username: `browser_${randomBytes(6).toString('hex')}`, password: randomBytes(24).toString('base64url') }
   const now = new Date().toISOString()

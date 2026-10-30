@@ -35,7 +35,7 @@ function App() {
 
   return (
     <AppLayout page={page} title={page === 'account' ? 'Hesabım' : title} user={user} signingOut={auth.busy === 'logout'} onSignOut={() => { void signOut() }}>
-      {auth.error && <div className="session-notice"><ErrorState title="Çıkış tamamlanamadı" description={auth.error}
+      {auth.error && <div className="session-notice"><ErrorState title="Oturum işlemi tamamlanamadı" description={auth.error}
         onRetry={() => { void checkSession() }} /></div>}
       {!canAccessPage(page, user.role) ? <>
         <PageHeader title="Erişim izni gerekli" description="Bu çalışma alanına erişim yetkiniz bulunmuyor." />

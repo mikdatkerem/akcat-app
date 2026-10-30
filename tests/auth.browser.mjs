@@ -119,9 +119,9 @@ export async function verifyAuth(browserPage, metadataPath) {
 
     blockMe = true
     await page.evaluate(async () => { const store = await import('/src/auth/sessionStore.ts'); await store.checkSession() })
-    await title('Oturum kontrol edilemedi').waitFor()
+    await title('Müşteriler').waitFor()
     assert.equal(await loginButton().count(), 0)
-    assert.equal(await page.locator('.app-shell').count(), 0)
+    assert.equal(await page.locator('.app-shell').count(), 1)
     assert.equal(await page.evaluate(async () => (await import('/src/auth/sessionStore.ts')).sessionStore.getSnapshot().session !== null), true)
     blockMe = false
     await page.getByRole('button', { name: 'Tekrar dene', exact: true }).click()
@@ -135,13 +135,12 @@ export async function verifyAuth(browserPage, metadataPath) {
     await title('Genel Bakış').waitFor()
     assert.equal(await page.locator('#mobile-drawer').evaluate(element => element.open), false)
     await page.setViewportSize({ width: 1440, height: 1000 })
-    await page.getByRole('button', { name: 'Bağlantıyı kontrol et', exact: true }).click()
-    await page.getByText('API ve veritabanı bağlantısı doğrulandı.', { exact: true }).waitFor()
+    assert.equal(await page.getByRole('button', { name: 'Bağlantıyı kontrol et', exact: true }).count(), 0)
     pass('authenticated mobile drawer navigation and existing real health request')
 
     blockLogout = true
     await logoutButton().click()
-    await page.getByRole('heading', { name: 'Çıkış tamamlanamadı', exact: true }).waitFor()
+    await page.getByRole('heading', { name: 'Oturum işlemi tamamlanamadı', exact: true }).waitFor()
     assert.equal(await page.locator('.app-shell').count(), 1)
     assert.ok(logoutHasCsrf)
     blockLogout = false

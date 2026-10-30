@@ -21,6 +21,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
     unitPrice: line.unitPrice ?? priceInputFromKurus(line.product.current_price_kurus) })))
   const [payment, setPayment] = useState(draft.payment)
   const [method, setMethod] = useState(draft.method)
+  const [changedPrices, setChangedPrices] = useState<{ product_id: string; name: string; expected_list_price_kurus: number; current_price_kurus: number }[]>([])
   const [error, setError] = useState('')
   const [invalid, setInvalid] = useState<{ customer?: string; items?: string; payment?: string; method?: string }>({})
   const [busy, setBusy] = useState(false)
@@ -54,7 +55,7 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
       body = { customer_id: customer.id, items: lines.map(line => {
         const price = unitPriceValue(line.unitPrice)
         return { product_id: line.product.id, quantity: quantityValue(line.quantity),
-          ...(price !== line.product.current_price_kurus ? { unit_price_kurus: price } : {}) }
+          ...(price !== line.product.current_price_kurus ? { unit_price_kurus: price } : { expected_list_price_kurus: line.product.current_price_kurus }) }
       }),
         payment: { amount_kurus: paid, method: paid > 0 ? method as PaymentMethod : null } }
     }
@@ -67,6 +68,11 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
     } catch (cause) {
       if (mounted.current) {
         setError(cause instanceof ApiError ? cause.message : 'Satış sonucu doğrulanamadı. Aynı satışı tekrar deneyin.')
+        if (cause instanceof ApiError && cause.code === 'PRICE_CHANGED') {
+          const detail = cause.details as { products?: unknown } | undefined
+          if (Array.isArray(detail?.products) && detail.products.every(row => row && typeof row.product_id === 'string' && typeof row.name === 'string' && Number.isSafeInteger(row.expected_list_price_kurus) && Number.isSafeInteger(row.current_price_kurus) && row.current_price_kurus >= 0)) setChangedPrices(detail.products)
+          updateSaleDraft(actor, draft.key, { pending: null }); setPending(null)
+        }
         // Only definitive rejection permits edits. Ambiguous failures retain exactly the original payload + key.
         if (cause instanceof ApiError && [400, 403, 413, 415, 422].includes(cause.status)) { updateSaleDraft(actor, draft.key, { pending: null }); setPending(null) }
       }
@@ -129,11 +135,26 @@ export function SaleForm({ actor, onSaved }: { actor: string; onSaved: (sale: Sa
           <div><dt>Kalan borç</dt><dd className="money">{total === undefined || paid === undefined || paid > total ? '—' : formatMoney(total - paid)}</dd></div>
         </dl>
         {lines.length > 0 && paid === 0 && total !== undefined && total > 0 && <p className="sale-credit">Ödeme alınmadı. Satışın tamamı veresiye olarak kaydedilecek.</p>}
-        <p className="sale-help">Özel fiyat yalnızca bu satışa uygulanır. Diğer kalemlerde kayıt anındaki liste fiyatı kullanılır; toplamlar sunucuda doğrulanır.</p>
+        <p className="sale-help">Özel fiyat yalnızca bu satışa uygulanır. Liste fiyatı değişirse yeniden onayınız istenir; toplamlar sunucuda doğrulanır.</p>
       </Card>
+      {changedPrices.length > 0 && <Card title="Ürün fiyatı değişti">
+        <ul>{changedPrices.map(row => <li key={row.product_id}><strong>{row.name}</strong>: {formatMoney(row.expected_list_price_kurus)} → {formatMoney(row.current_price_kurus)}</li>)}</ul>
+        <p>Yeni fiyatı kabul ettikten sonra güncel toplamı kontrol ederek satışı tekrar kaydedin.</p>
+        <Button disabled={busy} onClick={() => {
+          setLines(current => current.map(line => {
+            const changed = changedPrices.find(row => row.product_id === line.product.id)
+            if (!changed) return line
+            let catalogPrice = false
+            try { catalogPrice = unitPriceValue(line.unitPrice) === line.product.current_price_kurus } catch { /* Keep the invalid input for normal form validation. */ }
+            return { ...line, product: { ...line.product, current_price_kurus: changed.current_price_kurus },
+              unitPrice: catalogPrice ? priceInputFromKurus(changed.current_price_kurus) : line.unitPrice }
+          })); setChangedPrices([]); setError('')
+        }}>Yeni fiyatı kabul et</Button>
+        <Button variant="ghost" disabled={busy} onClick={() => { setChangedPrices([]); setError('') }}>Satışı düzenlemeye dön</Button>
+      </Card>}
       {error && <ErrorState title="Satış kaydı doğrulanamadı" description={error} />}
       {pending && !busy && <p className="sale-credit" role="status">Sonuç belirsiz olabilir. Bilgiler korundu; sayfayı yenilemeden aynı satışı tekrar deneyin veya satış geçmişini kontrol edin.</p>}
-      <div className="sale-submit"><Button type="submit" loading={busy} loadingText="Satış kaydediliyor…">{pending ? 'Aynı satışı tekrar dene' : 'Satışı Kaydet'}</Button></div>
+      <div className="sale-submit"><Button type="submit" loading={busy} disabled={changedPrices.length > 0} loadingText="Satış kaydediliyor…">{pending ? 'Aynı satışı tekrar dene' : 'Satışı Kaydet'}</Button></div>
     </form>
   </>
 }

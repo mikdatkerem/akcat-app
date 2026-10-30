@@ -69,7 +69,7 @@ export async function verifyFinance(browserPage, metadataPath) {
     assert.equal(login.status, 200); const otherAuth = await login.json(), otherCookie = login.headers.get('set-cookie').split(';')[0]
     async function otherSale(quantity, initial = 0) {
       const response = await fetch(meta.api + '/api/v1/sales', { method: 'POST', headers: { 'X-Test-Key': meta.key, Cookie: otherCookie, Origin: meta.origin,
-        'Content-Type': 'application/json', 'X-CSRF-Token': otherAuth.csrfToken, 'Idempotency-Key': randomUUID() }, body: JSON.stringify({ customer_id: customer.id, items: [{ product_id: product.id, quantity }], payment: { amount_kurus: initial, method: initial ? 'cash' : null } }) })
+        'Content-Type': 'application/json', 'X-CSRF-Token': otherAuth.csrfToken, 'Idempotency-Key': randomUUID() }, body: JSON.stringify({ customer_id: customer.id, items: [{ product_id: product.id, expected_list_price_kurus: product.current_price_kurus, quantity }], payment: { amount_kurus: initial, method: initial ? 'cash' : null } }) })
       assert.equal(response.status, 201); return (await response.json()).data
     }
     const sale = await otherSale(2, 10000)

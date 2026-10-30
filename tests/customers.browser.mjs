@@ -148,7 +148,7 @@ export async function verifyCustomers(browserPage, metadataPath) {
     assert.equal(me.status(), 200)
     const auth = await me.json()
     const denied = await context.request.patch(meta.origin + '/api/v1/customers/' + customerId, {
-      headers: { 'X-Test-Key': meta.key, Origin: meta.origin, 'X-CSRF-Token': auth.csrfToken }, data: { is_active: false } })
+      headers: { 'X-Test-Key': meta.key, Origin: meta.origin, 'X-CSRF-Token': auth.csrfToken, 'Idempotency-Key': randomUUID() }, data: { is_active: false, expected_version: 2 } })
     assert.equal(denied.status(), 403)
     pass('employee direct API attempt to change active status receives 403')
 

@@ -156,7 +156,7 @@ API gizli bilgilerini veya oturum anahtarlarını **`VITE_*` değişkenlerine ko
 
 ## Satışta özel fiyat
 
-Her kalemde TL birim fiyatı düzenlenebilir; “Özel fiyat” ve liste fiyatına dönüş desteklenir. Admin/employee aynı satış yetkisini kullanır; employee katalog fiyatı düzenleyemez. Fiyat/miktar/ödeme taslağı kullanıcı kapsamlı bellekte kalır; belirsiz yanıtta aynı gövde ve anahtar korunur. Detay gerçek/liste fiyatlarını ve işaretli farkları gösterir; eski liste fiyatı tahmin edilmez. **Web'den önce API ve `0003_sale_item_list_price.sql` migration'ı operatör tarafından hazırlanmalıdır.** Sözleşme ve manuel kontrol sırası: [SALES.md](../akcat-api/docs/SALES.md).
+Her kalemde TL birim fiyatı düzenlenebilir; “Özel fiyat” ve liste fiyatına dönüş desteklenir. Admin/employee aynı satış yetkisini kullanır; employee katalog fiyatı düzenleyemez. Fiyat/miktar/ödeme taslağı kullanıcı kapsamlı bellekte kalır; belirsiz yanıtta aynı gövde ve anahtar korunur. Detay gerçek/liste fiyatlarını ve işaretli farkları gösterir; eski liste fiyatı tahmin edilmez. **Web’den önce API, `0003_sale_item_list_price.sql` ve bekleyen `0004_record_versions.sql` migration’ı operatör tarafından hazırlanmalıdır; karışık sürümlerde yazmalar kapalı tutulmalıdır.** Sözleşme ve manuel kontrol sırası: [SALES.md](../akcat-api/docs/SALES.md).
 
 ## Kalite kontrolleri
 
@@ -226,3 +226,7 @@ AKÇAT, gerçek işletme süreçlerine göre geliştirilen ve iyileştirilmeye d
   <p><strong>AKÇAT</strong> · Su dağıtımında günlük işleri tek yerde yönetin.</p>
   <p>Geliştiren: <a href="https://github.com/mikdatkerem">Mikdat Kerem</a></p>
 </div>
+
+## Güvenilirlik güncellemesi (30.10.2026)
+
+Satışta beklenen liste fiyatı, müşteri/ürün PATCH işlemlerinde sürüm ve idempotency anahtarı kullanılır. Admin ürün detayında gerçek fiyat geçmişini görür. Yeni izole tarayıcı runner’ı: `node tests/run-isolated.mjs --suite all --playwright-dir <kurulu-playwright-paket-dizini>`. Paket kurmaz; her suite için geçici test DB oluşturup temizler. Sözleşme, migration ve kontrollü yayın/geri dönüş planı: [RELIABILITY.md](../akcat-api/docs/RELIABILITY.md).

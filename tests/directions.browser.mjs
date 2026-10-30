@@ -45,7 +45,7 @@ export async function verifyDirections(browserPage, metadataPath) {
     await sql("UPDATE users SET role='admin' WHERE id=?", [meta.fixture.id])
     const product = await post('/api/v1/products', { name: 'İzole yol tarifi ürünü', current_price_kurus: 1000 })
     await sql("UPDATE users SET role='employee' WHERE id=?", [meta.fixture.id])
-    const sale = await post('/api/v1/sales', { customer_id: customer.id, items: [{ product_id: product.id, quantity: 1 }], payment: { amount_kurus: 0, method: null } })
+    const sale = await post('/api/v1/sales', { customer_id: customer.id, items: [{ product_id: product.id, expected_list_price_kurus: product.current_price_kurus, quantity: 1 }], payment: { amount_kurus: 0, method: null } })
     await page.goto(customerPath(customer.id)); await link(page).waitFor()
     const href = await link(page).getAttribute('href'), url = new URL(href)
     assert.equal(url.origin, 'https://www.google.com'); assert.equal(url.pathname, '/maps/dir/')

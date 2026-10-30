@@ -49,7 +49,8 @@ export function checkSession({ quiet = false } = {}): Promise<void> {
   if (quiet && snapshot.status !== 'authenticated') return Promise.resolve()
   if (quiet && Date.now() - lastCheckedAt < 30_000) return Promise.resolve()
   const ticket = ++revision
-  publish({ ...snapshot, status: 'checking', error: null })
+  const authenticated = snapshot.status === 'authenticated' && !!snapshot.session
+  publish({ ...snapshot, status: authenticated ? 'authenticated' : 'checking', error: null })
   checking = (async () => {
     try {
       const session = await authApi.getSession()
@@ -60,8 +61,8 @@ export function checkSession({ quiet = false } = {}): Promise<void> {
         setCsrfToken(null)
         publish({ status: 'anonymous', session: null, busy: null, error: null })
       } else {
-        // Preserve the last known session, but hide protected content until it can be verified.
-        publish({ ...snapshot, status: 'unavailable', error: error instanceof ApiError ? error.message : 'Bağlantınızı kontrol edip tekrar deneyin.' })
+        // A transient recheck failure must not unmount authenticated forms. API authorization remains authoritative.
+        publish({ ...snapshot, status: authenticated ? 'authenticated' : 'unavailable', error: error instanceof ApiError ? error.message : 'Bağlantınızı kontrol edip tekrar deneyin.' })
       }
     } finally { checking = null }
   })()
