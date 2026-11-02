@@ -26,7 +26,7 @@ export function CustomerRecordPage({ id, editing, role, notice, onSaved }: { id:
       <dl className="customer-details">
         <div><dt>Müşteri adı</dt><dd>{customer.name}</dd></div>
         <div><dt>Telefon</dt><dd>{customer.phone || 'Belirtilmedi'}</dd></div>
-        <div><dt>Adres</dt><dd className="customer-multiline">{customer.address || 'Belirtilmedi'}<DirectionsLink address={customer.address} /></dd></div>
+        <div><dt>Adres</dt><dd className="customer-multiline">{customer.address || 'Adres belirtilmemiş'}<DirectionsLink address={customer.address} latitude={customer.latitude} longitude={customer.longitude} /></dd></div>
         <div><dt>Teslimat notu</dt><dd className="customer-multiline">{customer.delivery_notes || 'Teslimat notu yok.'}</dd></div>
         <div><dt>Oluşturulma</dt><dd><time dateTime={customer.created_at}>{date.format(new Date(customer.created_at))}</time></dd></div>
         <div><dt>Son güncelleme</dt><dd><time dateTime={customer.updated_at}>{date.format(new Date(customer.updated_at))}</time></dd></div>

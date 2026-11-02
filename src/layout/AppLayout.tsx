@@ -4,7 +4,7 @@ import { NavigationLinks } from './NavigationLinks'
 import { AccountActions } from './AccountActions'
 import type { User } from '../services/auth'
 import type { PageId } from './navigation'
-import logoUrl from '../assets/akcat-logo.png'
+import logoUrl from '../assets/logo_darkmode.png'
 import './layout.css'
 
 export function AppLayout({ page, title, children, user, signingOut, onSignOut }: {
@@ -15,6 +15,7 @@ export function AppLayout({ page, title, children, user, signingOut, onSignOut }
   signingOut: boolean
   onSignOut: () => void
 }) {
+  const brandLogo = { src: logoUrl, width: 1672, height: 941 }
   const mainRef = useRef<HTMLElement>(null)
   const previousPage = useRef(page)
   const drawerRef = useRef<HTMLDialogElement>(null)
@@ -105,7 +106,7 @@ export function AppLayout({ page, title, children, user, signingOut, onSignOut }
       }}>İçeriğe geç</a>
       <aside className="desktop-sidebar" aria-label="Uygulama kenar çubuğu">
         <a href="#/genel-bakis" className="sidebar-brand" aria-label="AKÇAT ana sayfa">
-          <img className="brand-logo" src={logoUrl} alt="AKÇAT" width="2172" height="724" />
+          <img className="brand-logo" {...brandLogo} alt="AKÇAT" />
         </a>
         <div className="sidebar-caption">ÇALIŞMA ALANI</div>
         <NavigationLinks page={page} label="Ana navigasyon" role={user.role} />
@@ -122,7 +123,7 @@ export function AppLayout({ page, title, children, user, signingOut, onSignOut }
             <Icon name="menu" />
           </Button>
           <a href="#/genel-bakis" className="mobile-brand" aria-label="AKÇAT ana sayfa">
-            <img className="brand-logo" src={logoUrl} alt="AKÇAT" width="2172" height="724" />
+            <img className="brand-logo" {...brandLogo} alt="AKÇAT" />
           </a>
         </header>
         <main ref={mainRef} id="main-content" className="app-content" tabIndex={-1} aria-labelledby="page-title">
@@ -158,7 +159,7 @@ export function AppLayout({ page, title, children, user, signingOut, onSignOut }
           backdropPress.current = false
         }}>
         <div className="drawer-header">
-          <span className="drawer-brand"><img className="brand-logo" src={logoUrl} alt="AKÇAT" width="2172" height="724" /></span>
+          <span className="drawer-brand"><img className="brand-logo" {...brandLogo} alt="AKÇAT" /></span>
           <Button ref={closeButtonRef} variant="ghost" className="menu-toggle" aria-label="Menüyü kapat" onClick={() => setDrawerOpen(false)}>
             <Icon name="close" />
           </Button>

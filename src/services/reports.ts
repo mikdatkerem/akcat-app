@@ -8,7 +8,7 @@ export type ReportRange = { period: Period; from: string; to: string; start_date
 export type SalesTotals = { sales_total_kurus: number; sales_count: number; cancelled_total_kurus: number; cancelled_count: number }
 export type PaymentTotals = { payments_total_kurus: number; payments_count: number; cash_kurus: number; card_kurus: number; bank_kurus: number }
 export type DebtTotals = { total_debt_kurus: number; debtor_count: number; open_sales_count: number; sales_total_kurus: number; paid_kurus: number }
-export type Recent = { id: string; type: 'sale' | 'payment' | 'cancellation' | 'record_reversal' | 'external_refund'; sale_id: string | null; customer_id: string; customer_name: string;
+export type Recent = { id: string; type: 'sale' | 'payment' | 'cancellation' | 'record_reversal' | 'external_refund'; sale_id: string | null; customer_id: string | null; customer_name: string;
   amount_kurus: number; created_by: string; created_by_username: string; created_at: string; status: string }
 export type ReportItem = { id: string; sale_id: string; product_id: string; product_name_snapshot: string; unit_price_kurus: number; quantity: number;
   line_total_kurus: number; created_at: string; created_by_username: string; customer_name: string }
@@ -42,7 +42,8 @@ function range(value: unknown): ReportRange {
 }
 function recent(value: unknown): Recent {
   const row = object(value)
-  if (!['id', 'customer_id', 'customer_name', 'created_by', 'created_by_username', 'status'].every(key => typeof row[key] === 'string')
+  if (!['id', 'customer_name', 'created_by', 'created_by_username', 'status'].every(key => typeof row[key] === 'string')
+    || (row.customer_id !== null && typeof row.customer_id !== 'string')
     || !['sale', 'payment', 'cancellation', 'record_reversal', 'external_refund'].includes(String(row.type)) || !money(row.amount_kurus) || !date(row.created_at)
     || (row.sale_id !== null && typeof row.sale_id !== 'string')) throw invalid()
   return row as Recent

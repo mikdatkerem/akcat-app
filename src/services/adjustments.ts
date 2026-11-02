@@ -3,7 +3,7 @@ import type { PageFilter, PageInfo } from './finance'
 import type { PaymentMethod } from './sales'
 
 export type AdjustmentKind = 'record_reversal' | 'external_refund'
-export type FinancialPreview = { payment_id: string; sale_id: string; customer_id: string; customer_name: string; amount_kurus: number; method: PaymentMethod;
+export type FinancialPreview = { sale_type: 'normal' | 'walk_in'; payment_id: string; sale_id: string; customer_id: string | null; customer_name: string; amount_kurus: number; method: PaymentMethod;
   original_created_at: string; original_created_by_username: string; before_sale_remaining_kurus: number; after_sale_remaining_kurus: number;
   before_customer_debt_kurus: number; after_customer_debt_kurus: number; requires_external_confirmation: boolean }
 export type Adjustment = Omit<FinancialPreview, 'original_created_at' | 'original_created_by_username' | 'requires_external_confirmation'> & {
@@ -20,7 +20,13 @@ const date = (value: unknown) => typeof value === 'string' && Number.isFinite(Da
 function balances(row: Record<string, unknown>) {
   if (!['amount_kurus', 'before_sale_remaining_kurus', 'after_sale_remaining_kurus', 'before_customer_debt_kurus', 'after_customer_debt_kurus'].every(key => money(row[key]))
     || row.amount_kurus === 0 || !['cash', 'card', 'bank'].includes(String(row.method))
-    || !['payment_id', 'sale_id', 'customer_id', 'customer_name'].every(key => typeof row[key] === 'string')) throw invalid()
+    || !['payment_id', 'sale_id', 'customer_name'].every(key => typeof row[key] === 'string')) throw invalid()
+  row.sale_type ??= 'normal'
+  if (row.sale_type === 'walk_in') {
+    if (row.customer_id !== null || !['before_sale_remaining_kurus','after_sale_remaining_kurus','before_customer_debt_kurus','after_customer_debt_kurus'].every(key => row[key] === 0)) throw invalid()
+    return
+  }
+  if (row.sale_type !== 'normal' || typeof row.customer_id !== 'string') throw invalid()
   for (const scope of ['sale_remaining', 'customer_debt']) {
     if (BigInt(Number(row[`before_${scope}_kurus`])) + BigInt(Number(row.amount_kurus)) !== BigInt(Number(row[`after_${scope}_kurus`]))) throw invalid()
   }

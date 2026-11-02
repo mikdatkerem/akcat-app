@@ -18,7 +18,7 @@ export function FinancialApproval({ row, actor, onSaved, onClose }: { row: Corre
   }
   return <form className="correction-form" onSubmit={submit}>
     <p className="sale-help">{refund ? 'Bu ekran para göndermez ve banka/POS sonucunu doğrulamaz. Yalnızca asıl tahsilatla aynı ödeme yöntemiyle, uygulama dışında fiilen tamamlanmış tam iadeyi teyit edin. Farklı yöntem veya kısmi iade desteklenmez.'
-      : 'Yalnızca gerçekte alınmamış veya hatalı kaydedilmiş ödemenin tam tutarını geri alın. Müşteriye para iade edildiğinde harici iade talebi kullanın.'} Satış iptal edilmez; borç yukarıdaki tutarda yeniden açılır.</p>
+      : 'Yalnızca gerçekte alınmamış veya hatalı kaydedilmiş ödemenin tam tutarını geri alın. Müşteriye para iade edildiğinde harici iade talebi kullanın.'} {preview.sale_type === 'walk_in' ? 'Hızlı satış tam düzeltmeyle aynı işlemde iptal edilir; müşteri borcu oluşmaz.' : 'Satış iptal edilmez; borç yukarıdaki tutarda yeniden açılır.'}</p>
     <Textarea label="Onay gerekçesi" required maxLength={1000} value={reason} disabled={locked} onChange={event => setReason(event.target.value)} />
     {refund && <><Input label="Harici iade referansı / belge numarası" required maxLength={200} value={reference} disabled={locked} onChange={event => setReference(event.target.value)} />
       <label className="refund-confirmation"><input type="checkbox" checked={confirmed} disabled={locked} onChange={event => setConfirmed(event.target.checked)} required />

@@ -26,7 +26,7 @@ export function ReportFilters({ mode, filter, retry }: { mode: ReportMode; filte
         <option value="sales">Geçerli satışlar</option><option value="cancelled">İptal edilen satışlar</option><option value="items">Satış kalemleri</option><option value="products">Ürün bazında</option>
       </Select>}
       {mode !== 'payments' && <Input label={mode === 'employees' ? 'Çalışan ara' : mode === 'sales' && view === 'products' ? 'Ürün adı ara' : 'Müşteri adı ara'} type="search" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />}
-      <Button type="submit" variant="secondary">Raporu Getir</Button>
+      <Button type="submit" variant="primary">Raporu Getir</Button>
     </form>
     {error && <p className="report-error" role="alert">{error}</p>}
     {filter.created_by && <p className="report-actor">Seçili çalışan: <span>{filter.created_by}</span> · <a className="text-link" href={reportsHref(mode, { ...filter, created_by: undefined, page: 1 })}>Çalışan filtresini kaldır</a></p>}

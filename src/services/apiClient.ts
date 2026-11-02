@@ -28,6 +28,20 @@ export function onUnauthorized(listener: () => void) {
 }
 
 function httpError(status: number, code: string, method: string) {
+  const operationErrors: Record<string, string> = {
+    INVALID_COLLECTION_INPUT: 'Müşteriyi, pozitif tahsilat tutarını ve ödeme yöntemini kontrol edin.',
+    CUSTOMER_INACTIVE: 'Müşteri pasif. Toplu tahsilat için yöneticiyle görüşün.',
+    NO_OPEN_DEBT: 'Müşterinin açık borcu yok.',
+    COLLECTION_EXCEEDS_DEBT: 'Tahsilat tutarı güncel müşteri borcunu aşamaz.',
+    BALANCE_CONFIRMATION_REQUIRED: 'Önce güncel ödeme dağılımını görüntüleyip onaylayın.',
+    COLLECTION_BALANCE_CHANGED: 'Müşteri borcu işlem sırasında değişti. Güncel dağılımı görüntüleyip tekrar onaylayın.',
+    COLLECTION_NOT_FOUND: 'Toplu tahsilat bulunamadı.',
+    PRODUCT_PRICE_REQUIRED: 'Katalog fiyatı olmayan ürün için pozitif birim fiyat girin.',
+    PRODUCT_ORDER_CONFLICT: 'Ürün sırası değişti veya ürün listenin sınırında. Ürün listesini yenileyip tekrar deneyin.',
+  }
+  if (operationErrors[code]) return new ApiError(status, code, operationErrors[code])
+  if (code === 'CUSTOMER_DUPLICATE_CONFIRMATION') return new ApiError(status, code, 'Benzer müşteri bulundu. Kaydetmek için onayınız gerekli.')
+  if (code === 'DUPLICATE_RECHECK') return new ApiError(status, code, 'Müşteri eşleşmeleri değişti. Tekrar kaydedin.')
   if (code === 'PRICE_CHANGED') return new ApiError(status, code, 'Ürün fiyatı değişti. Yeni tutarı kontrol edip satışı tekrar onaylayın.')
   if (code === 'PRICE_CONFIRMATION_REQUIRED') return new ApiError(status, code, 'Liste fiyatlarını yenileyip satışı tekrar onaylayın.')
   if (code === 'RECORD_VERSION_CONFLICT') return new ApiError(status, code, 'Bu kayıt siz düzenlerken başka bir kullanıcı tarafından değiştirildi. Güncel bilgileri yükleyip tekrar inceleyin.')

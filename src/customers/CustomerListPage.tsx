@@ -32,7 +32,7 @@ export function CustomerListPage({ filter, role }: { filter: CustomerFilter; rol
       <Select label="Durum" value={status} onChange={event => setStatus(event.target.value as CustomerFilter['status'])}>
         <option value="all">Tümü</option><option value="active">Aktif</option><option value="inactive">Pasif</option>
       </Select>
-      <Button type="submit" variant="secondary">Ara</Button>
+      <Button type="submit" variant="primary">Ara</Button>
     </form>
     {!result ? <LoadingState label="Müşteriler yükleniyor…" /> : result.error ? <ErrorState title="Müşteriler yüklenemedi" description={result.error} onRetry={retry} /> : list && <>
       {list.data.length === 0 ? <Card title="Müşteri listesi"><EmptyState icon="customers" title={filter.q || filter.status !== 'all' ? 'Bu filtrelerde müşteri bulunamadı' : list.pagination.total === 0 ? 'Henüz müşteri yok' : 'Bu sayfada müşteri yok'}
@@ -45,8 +45,7 @@ export function CustomerListPage({ filter, role }: { filter: CustomerFilter; rol
               <td data-label="Telefon">{customer.phone || 'Belirtilmedi'}</td>
               <td className="customer-address" data-label="Adres"><span>{customer.address}</span></td>
               <td><Badge tone={customer.is_active ? 'success' : 'neutral'}>{customer.is_active ? 'Aktif' : 'Pasif'}</Badge></td>
-              <td>{role === 'admin' ? <CustomerActions customer={customer} onChanged={changed} />
-                : <a className="customer-detail-link" href={customerHref(customer.id)} aria-label={`${customer.name} detaylarını görüntüle`}>Detay</a>}</td>
+              <td><CustomerActions customer={customer} role={role} onChanged={changed} /></td>
             </tr>)}</tbody>
           </table>
         </div>}

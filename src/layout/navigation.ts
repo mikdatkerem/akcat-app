@@ -12,9 +12,9 @@ export const navigation: NavigationItem[] = [
   { id: 'payments', label: 'Tahsilatlar', href: '#/tahsilatlar', icon: 'payments' },
   { id: 'credit', label: 'Veresiye', href: '#/veresiye', icon: 'credit' },
   { id: 'products', label: 'Ürünler', href: '#/urunler', icon: 'products' },
-  { id: 'corrections', label: 'Düzeltme Talepleri', href: '#/duzeltmeler', icon: 'refresh' },
-  { id: 'reports', label: 'Raporlar', href: '#/raporlar', icon: 'credit' },
-  { id: 'users', label: 'Çalışanlar', href: '#/calisanlar', icon: 'customers', roles: ['admin'] },
+  { id: 'corrections', label: 'Düzeltme Talepleri', href: '#/duzeltmeler', icon: 'corrections' },
+  { id: 'reports', label: 'Raporlar', href: '#/raporlar', icon: 'credit', roles: ['admin'] },
+  { id: 'users', label: 'Personel Yönetimi', href: '#/calisanlar', icon: 'customers', roles: ['admin'] },
 ]
 
 export const menuItem: NavigationItem = { id: 'menu', label: 'Menü', href: '#/menu', icon: 'menu' }

@@ -42,9 +42,7 @@
 .sale-details dt { font-size: var(--font-size-help); color: var(--color-text-secondary); margin-bottom: var(--space-1); }
 .sale-details dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 .sale-snapshot-items li, .sale-payment-list li { flex-wrap: wrap; }
-.sale-history-filters { margin-bottom: var(--space-6); }
-.sale-history-filters details { border-bottom: var(--border-default); padding-bottom: var(--space-3); }
-.sale-history-filters summary { cursor: pointer; min-height: var(--touch-target); padding-block: var(--space-3); color: var(--color-primary-active); }
+.sale-history-filters { margin: 0; }
 .sale-date-filters > .ui-button { justify-self: start; }
 .sale-list-surface { border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
 .sale-table, .sale-table tbody { display: block; width: 100%; }
@@ -55,7 +53,9 @@
 .sale-table td { min-width: 0; overflow-wrap: anywhere; }
 .sale-table td[data-label] { display: flex; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
 .sale-table td[data-label]::before { content: attr(data-label) ': '; color: var(--color-text-secondary); font-size: var(--font-size-help); }
-.sale-detail-link { display: inline-flex; align-items: center; min-height: var(--touch-target); color: var(--color-primary-active); text-decoration: underline; text-underline-offset: 3px; }
+.sale-detail-link { display: inline-flex; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); border-radius: var(--radius-pill); color: var(--color-primary-active); }
+.sale-detail-link:hover { background: var(--color-surface-muted); }
+.sale-action-cell { text-align: right; }
 .sale-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-5); }
 .sale-pagination p { color: var(--color-text-secondary); margin: 0; font-variant-numeric: tabular-nums; }
 @media (min-width: 640px) {
@@ -80,10 +80,24 @@
   .sale-table tr:last-child td { border-bottom: 0; }
   .sale-table td[data-label]::before { content: none; }
   .sale-table .money { white-space: normal; overflow-wrap: anywhere; }
-  .sale-table th:nth-child(1) { width: 17%; }
-  .sale-table th:nth-child(2) { width: 19%; }
-  .sale-table th:nth-child(3), .sale-table th:nth-child(4), .sale-table th:nth-child(5) { width: 12%; }
+  .sale-table th:nth-child(1) { width: 16%; }
+  .sale-table th:nth-child(2) { width: 18%; }
+  .sale-table th:nth-child(3), .sale-table th:nth-child(4), .sale-table th:nth-child(5) { width: 10%; }
   .sale-table th:nth-child(6) { width: 15%; }
   .sale-table th:nth-child(7) { width: 13%; }
+  .sale-table th:nth-child(8) { width: 68px; }
+  .sale-table td.sale-action-cell { text-align: right; }
   .sale-table th:nth-child(n+3):nth-child(-n+5), .sale-table td:nth-child(n+3):nth-child(-n+5) { text-align: right; }
 }
+
+/* Global .text-link top margin was shifting only the customer cell down. */
+.sale-table .text-link { margin: 0; vertical-align: middle; }
+.sale-customer-cell { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-width: 0; gap: var(--space-1); }
+.sale-customer-cell > strong { font-weight: var(--font-weight-semibold); }
+.sale-kind-label { color: var(--color-info); font-size: var(--font-size-help); line-height: 1.3; }
+.sale-type-switch { margin: 0; padding: var(--space-4); border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); min-width: 0; }
+.sale-type-switch legend { font-weight: var(--font-weight-semibold); padding-inline: var(--space-2); }
+.sale-type-switch > div { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.sale-type-switch p { color: var(--color-text-secondary); font-size: var(--font-size-help); margin-bottom: 0; }
+.sale-table td .money { display: block; }
+@media (min-width: 1200px) { .sale-table th:nth-child(3),.sale-table th:nth-child(4),.sale-table th:nth-child(5),.sale-table td:nth-child(3),.sale-table td:nth-child(4),.sale-table td:nth-child(5) { text-align: right; } }

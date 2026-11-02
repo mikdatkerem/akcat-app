@@ -12,12 +12,15 @@
 .user-table, .user-table tbody { display: block; width: 100%; }
 .user-table { border-collapse: collapse; }
 .user-table thead { display: none; }
-.user-table tr { display: grid; gap: var(--space-3); padding: var(--space-4); border-bottom: var(--border-default); }
+.user-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); padding: var(--space-4); border-bottom: var(--border-default); }
 .user-table tr:last-child { border: 0; }
-.user-table td { min-width: 0; overflow-wrap: anywhere; }
+.user-table td { min-width: 0; overflow-wrap: anywhere; grid-column: 1 / -1; }
+.user-table td:first-child { grid-column: 1; grid-row: 1; }
+.user-table td:last-child { grid-column: 2; grid-row: 1; }
+.user-table .text-link { margin-top: 0; }
 .user-table td[data-label]::before { content: attr(data-label) ': '; color: var(--color-text-secondary); }
 .user-dialog { width: min(34rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: auto; padding: var(--space-5); border: var(--border-default); border-radius: var(--radius-lg); color: var(--color-text); background: var(--color-surface); }
-.user-dialog::backdrop { background: rgb(15 23 42 / 32%); }
+.user-dialog::backdrop { background: var(--color-overlay); }
 .user-dialog h2 { margin-top: 0; }
 @media (min-width: 640px) { .user-filters { grid-template-columns: minmax(0,1fr) minmax(140px,180px) auto; } .user-details { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (min-width: 1200px) {
@@ -25,7 +28,7 @@
   .user-table thead { display: table-header-group; }
   .user-table tbody { display: table-row-group; }
   .user-table tr { display: table-row; }
-  .user-table th, .user-table td { display: table-cell; padding: var(--space-4); text-align: left; border-bottom: var(--border-default); }
+  .user-table th, .user-table td { display: table-cell; padding: var(--space-4); text-align: left; border-bottom: var(--border-default); vertical-align: middle; }
   .user-table th { background: var(--color-row-alternate); }
   .user-table td[data-label]::before { content: none; }
 }

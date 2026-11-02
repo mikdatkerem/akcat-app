@@ -4,7 +4,7 @@ import { parseArgs } from 'node:util'
 import { setTimeout as delay } from 'node:timers/promises'
 
 const { values } = parseArgs({ options: { suite: { type: 'string', default: 'reliability' }, 'playwright-dir': { type: 'string' } } })
-const suites = values.suite === 'all' ? ['auth','customers','products','sales','finance','corrections','reports','adjustments','users','account','audit','directions','reliability'] : values.suite.split(',')
+const suites = values.suite === 'all' ? ['auth','customers','products','sales','finance','corrections','reports','adjustments','users','account','audit','directions','reliability','walkIn','dashboardFilters','customerLocation','customerDuplicates'] : values.suite.split(',')
 for (const suite of suites) {
   const server = spawn(process.execPath, ['--experimental-strip-types', 'tests/serve-auth.mjs', '--automation'], { windowsHide: true, stdio: ['pipe','pipe','pipe'] })
   let output = ''

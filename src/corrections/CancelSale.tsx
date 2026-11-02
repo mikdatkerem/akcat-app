@@ -22,7 +22,7 @@ function CancelDialog({ sale, actor, close, onSaved }: { sale: Sale; actor: stri
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) guardedClose()
     }}>
     <h2 id="cancel-title">Satışı iptal et</h2>
-    <p id="cancel-description">{sale.customer.name} için bu satışın borcu kapatılacak. Satış, ürünler ve işlem geçmişi korunacak. Bu işlem geri alınamaz.</p>
+    <p id="cancel-description">{sale.customer?.name ?? sale.customer_name} için bu satışın borcu kapatılacak. Satış, ürünler ve işlem geçmişi korunacak. Bu işlem geri alınamaz.</p>
     <ReasonForm actor={actor} scope={'cancel:' + sale.id} label="İptali Onayla" danger
       send={(body, key) => cancelSale(sale.id, body, key)} onClose={guardedClose} onBusyChange={value => { busy.current = value }} onSaved={onSaved} />
   </dialog>

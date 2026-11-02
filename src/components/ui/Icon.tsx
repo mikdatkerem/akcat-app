@@ -6,8 +6,13 @@ const paths = {
   sales: <><path d="m3 3 2 0 3 12h10l3-9H6M10 6v6m-3-3h6" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></>,
   payments: <><path d="M20 8V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v12H5a3 3 0 0 1-3-3V6" /><path d="M20 12h-5v5h5" /><path d="M16 14.5h.01" /></>,
   credit: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h3" /></>,
+  corrections: <><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M7 7h3M7 11h2" /><path d="m16 8 4 4M11 13l-1 5 5-1 7-7a2.83 2.83 0 0 0-4-4l-7 7Z" /></>,
   products: <><path d="m12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5" /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
+  more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  reorder: <><path d="M8 19V5m-4 4 4-4 4 4M16 5v14m-4-4 4 4 4-4" /></>,
+  bolt: <path d="m13 2-9 12h7l-1 8 10-12h-7l1-8Z" />,
   close: <path d="m6 6 12 12M18 6 6 18" />,
   trash: <><path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M5 6l1 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-14M10 10v7M14 10v7" /></>,
   droplet: <path d="M12 2C9 6 5 10 5 14a7 7 0 0 0 14 0c0-4-4-8-7-12Z" />,
@@ -17,6 +22,7 @@ const paths = {
   check: <><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></>,
   alert: <><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></>,
   refresh: <><path d="M20 7v5h-5M4 17v-5h5" /><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" /></>,
+  rotate: <><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></>,
 } satisfies Record<string, ReactNode>
 
 export type IconName = keyof typeof paths

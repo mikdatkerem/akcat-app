@@ -3,6 +3,7 @@ import { Button, Card, EmptyState, ErrorState, LoadingState } from '../component
 import { useResource } from '../hooks/useResource'
 import { getProductPriceHistory } from '../services/products'
 import { formatMoney } from '../utils/format'
+import { catalogMoney } from '../utils/catalog'
 
 const date = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' })
 export function PriceHistory({ id }: { id: string }) {
@@ -14,9 +15,9 @@ export function PriceHistory({ id }: { id: string }) {
       ? <ErrorState title="Fiyat geçmişi alınamadı" description={result.error ?? 'Lütfen tekrar deneyin.'} onRetry={retry} />
       : <>{result.data.data.length === 0 ? <EmptyState title="Henüz fiyat değişikliği yok" description="Eski fiyatı bilinmeyen geçmiş işlemler burada gösterilmez." />
         : <ul className="product-price-history">{result.data.data.map(row => {
-          const difference = BigInt(row.new_price_kurus) - BigInt(row.old_price_kurus)
-          return <li key={row.id}><div className="money">{formatMoney(row.old_price_kurus)} → <strong>{formatMoney(row.new_price_kurus)}</strong>
-            <span> ({difference > 0n ? '+' : ''}{formatMoney(difference)})</span></div>
+          const difference = row.new_price_kurus === null || row.old_price_kurus === null ? null : BigInt(row.new_price_kurus) - BigInt(row.old_price_kurus)
+          return <li key={row.id}><div className="money">{catalogMoney(row.old_price_kurus)} → <strong>{catalogMoney(row.new_price_kurus)}</strong>
+            {difference !== null && <span> ({difference > 0n ? '+' : ''}{formatMoney(difference)})</span>}</div>
             <small>{row.username ?? 'Kullanıcı kaydı yok'} · <time dateTime={row.created_at}>{date.format(new Date(row.created_at))}</time></small></li>
         })}</ul>}
         {result.data.pagination.totalPages > 1 && <div className="product-pagination" aria-label="Fiyat geçmişi sayfaları">

@@ -5,7 +5,7 @@ import { PageHeader } from '../pages/PageHeader'
 import type { Role } from '../services/auth'
 import { getProduct, type Product, type ProductFilter } from '../services/products'
 import { useResource } from '../hooks/useResource'
-import { formatMoney } from '../utils/format'
+import { catalogMoney } from '../utils/catalog'
 import { ProductForm } from './ProductForm'
 import { ProductListPage } from './ProductListPage'
 import { productHref, useProductLocation } from './routing'
@@ -26,7 +26,7 @@ function ProductRecord({ id, editing, role, notice, onSaved }: { id: string; edi
     <Card title="Ürün bilgileri" accessory={<Badge tone={product.is_active ? 'success' : 'neutral'}>{product.is_active ? 'Aktif' : 'Pasif'}</Badge>}>
       <dl className="product-details">
         <div><dt>Ürün adı</dt><dd>{product.name}</dd></div>
-        <div><dt>Güncel satış fiyatı</dt><dd className="money">{formatMoney(product.current_price_kurus)}</dd></div>
+        <div><dt>Güncel satış fiyatı</dt><dd className="money">{catalogMoney(product.current_price_kurus)}</dd></div>
         <div><dt>Oluşturulma</dt><dd><time dateTime={product.created_at}>{date.format(new Date(product.created_at))}</time></dd></div>
         <div><dt>Son güncelleme</dt><dd><time dateTime={product.updated_at}>{date.format(new Date(product.updated_at))}</time></dd></div>
       </dl>

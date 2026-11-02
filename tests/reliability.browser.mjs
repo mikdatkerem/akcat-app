@@ -31,7 +31,7 @@ export async function verifyReliability(browserPage, metadataPath) {
     }
     const customer = await post('customers', { name: 'İzole taslak müşterisi ' + randomUUID(), address: 'İzole test adresi' })
     const product = await post('products', { name: 'İzole fiyat ürünü ' + randomUUID(), current_price_kurus: 10000 })
-    for (const [path, heading, label] of [['musteriler/yeni','Yeni müşteri','Müşteri adı'], ['urunler/yeni','Yeni ürün','Ürün adı'], ['calisanlar/yeni','Çalışan ekle','Kullanıcı adı']]) {
+    for (const [path, heading, label] of [['musteriler/yeni','Yeni müşteri','Müşteri adı'], ['urunler/yeni','Yeni ürün','Ürün adı'], ['calisanlar/yeni','Personel ekle','Kullanıcı adı']]) {
       await page.goto(meta.origin + '/#/' + path)
       // Account route names are verified against the real routing in the app.
       await title(heading).waitFor()

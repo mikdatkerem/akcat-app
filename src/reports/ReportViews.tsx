@@ -28,7 +28,7 @@ export function PaymentsReport({ filter }: { filter: ReportFilter }) {
         <p>Toplamlar seçili dönem ve varsa çalışanın tamamını kapsar.</p>
       </HelpDisclosure>
       <ReportTable rows={result.data.data} rowKey={row => row.id} label="Geçerli tahsilat hareketleri" columns={[
-        { label: 'Tarih', cell: row => saleDate(row.created_at) }, { label: 'Müşteri', cell: row => <a className="text-link" href={customerHref(row.customer_id)}>{row.customer_name}</a> },
+        { label: 'Tarih', cell: row => saleDate(row.created_at) }, { label: 'Müşteri', cell: row => row.customer_id ? <a className="text-link" href={customerHref(row.customer_id)}>{row.customer_name}</a> : <span>{row.customer_name} · Hızlı Satış</span> },
         { label: 'Tutar', cell: row => <span className="money">{formatMoney(row.amount_kurus)}</span> }, { label: 'Yöntem', cell: row => methodLabels[row.method] },
         { label: 'Tahsil eden', cell: row => row.created_by_username }, { label: 'Satış', cell: row => row.sale_id ? <a className="text-link" href={saleHref(row.sale_id)}>Satış detayı</a> : 'Satışa bağlı değil' },
       ]} /><Pagination page={result.data.pagination} label="Tahsilat raporu sayfaları" onPage={page => { window.location.hash = reportsHref('payments', { ...filter, page }) }} />

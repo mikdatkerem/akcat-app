@@ -8,7 +8,7 @@ export async function verifyReports(browserPage, metadataPath) {
   const context = await browserPage.context().browser().newContext({ viewport: { width: 1440, height: 1000 } })
   const page = await context.newPage(); page.setDefaultTimeout(15000)
   const passed = [], screenshots = [], errors = []
-  let failSummary = false, failReport = false, employeeReportRequests = 0
+  let failSummary = false, failReport = false, reportRequests = 0
   page.on('pageerror', error => errors.push(error.message))
   const pass = label => { passed.push(label); console.log('PASS: ' + label) }
   const heading = name => page.getByRole('heading', { name, level: 1, exact: true })
@@ -20,7 +20,7 @@ export async function verifyReports(browserPage, metadataPath) {
     const request = route.request(), url = new URL(request.url())
     if (url.origin !== meta.origin) return route.continue()
     const headers = { ...request.headers(), 'X-Test-Key': meta.key }
-    if (url.pathname === '/api/v1/reports/employees') employeeReportRequests++
+    if (url.pathname.startsWith('/api/v1/reports/')) reportRequests++
     if ((failSummary && url.pathname === '/api/v1/reports/summary') || (failReport && url.pathname === '/api/v1/reports/payments')) headers['X-Test-Mode'] = 'finance-db-error'
     return route.continue({ headers })
   })
@@ -37,18 +37,20 @@ export async function verifyReports(browserPage, metadataPath) {
   try {
     await page.goto(meta.origin + '/#/raporlar'); await heading('Giriş yapın').waitFor()
     await page.getByLabel(/^Kullanıcı adı/).fill(meta.fixture.username); await page.getByLabel(/^Parola(?:\s|\*)*$/).fill(meta.fixture.password)
-    await page.getByRole('button', { name: 'Giriş Yap', exact: true }).click(); await heading('Tahsilat Raporu').waitFor()
-    await page.getByRole('heading', { name: 'Rapor kaydı bulunamadı', exact: true }).waitFor()
-    await metric('payments_total').filter({ hasText: '0,00' }).waitFor()
-    assert.equal(await page.getByRole('link', { name: 'Çalışan Raporu', exact: true }).count(), 0)
-    await page.goto(meta.origin + '/#/raporlar/calisanlar'); await page.getByRole('heading', { name: 'Yönetici yetkisi gerekli', exact: true }).waitFor()
-    assert.equal(employeeReportRequests, 0)
-    await page.goto(meta.origin + '/#/raporlar/satislar?created_by=' + meta.fixture.id)
-    await page.getByRole('heading', { name: 'Yönetici yetkisi gerekli', exact: true }).waitFor()
-    await page.goto(meta.origin + '/#/genel-bakis'); await metric('today_sales').filter({ hasText: '0,00' }).waitFor()
+    await page.getByRole('button', { name: 'Giriş Yap', exact: true }).click(); await heading('Erişim izni gerekli').waitFor()
+    assert.equal(await page.getByRole('link', { name: 'Raporlar', exact: true }).count(), 0)
+    for (const path of ['tahsilatlar', 'satislar', 'borclar', 'calisanlar']) {
+      await page.goto(meta.origin + '/#/raporlar/' + path); await heading('Erişim izni gerekli').waitFor()
+    }
+    await page.goto(meta.origin + '/#/genel-bakis'); await heading('Genel Bakış').waitFor()
+    assert.equal(await page.locator('.dashboard-report').count(), 0)
+    assert.equal(reportRequests, 0)
+    pass('employee sees no reports menu, protected report views or dashboard report; no report requests are sent')
+    await sql("UPDATE users SET role='admin' WHERE id=?", [meta.fixture.id]); await page.reload()
+    await metric('today_sales').filter({ hasText: '0,00' }).waitFor()
     await page.getByRole('heading', { name: 'Henüz işlem bulunmuyor.', exact: true }).waitFor()
     assert.equal(await page.getByRole('alert').count(), 0)
-    pass('protected reports; real zero dashboard; employee management route blocked without API request')
+    pass('admin sees the real zero dashboard')
     const authResponse = await context.request.get(meta.origin + '/api/v1/auth/me', { headers: { 'X-Test-Key': meta.key } }), auth = await authResponse.json()
     async function post(path, data, method = 'POST') {
       const response = await context.request.fetch(meta.origin + path, { method, headers: { 'X-Test-Key': meta.key, Origin: meta.origin, 'X-CSRF-Token': auth.csrfToken, 'Idempotency-Key': randomUUID() }, data })
@@ -59,6 +61,7 @@ export async function verifyReports(browserPage, metadataPath) {
     const product = await post('/api/v1/products', { name: 'Rapor snapshot ürünü', current_price_kurus: 50000 })
     await sql("UPDATE users SET role='employee' WHERE id=?", [meta.fixture.id])
     const initial = await post('/api/v1/sales', { customer_id: customer.id, items: [{ product_id: product.id, expected_list_price_kurus: product.current_price_kurus, quantity: 1 }], payment: { amount_kurus: 10000, method: 'cash' } })
+    await sql("UPDATE users SET role='admin' WHERE id=?", [meta.fixture.id])
     const summary = await (await context.request.get(meta.origin + '/api/v1/reports/summary', { headers: { 'X-Test-Key': meta.key } })).json()
     const old = new Date(Date.parse(summary.range.from) - 3600000).toISOString()
     await sql('UPDATE sales SET created_at=?,updated_at=? WHERE id=?', [old, old, initial.id]); await sql('UPDATE payments SET created_at=? WHERE sale_id=?', [old, initial.id])

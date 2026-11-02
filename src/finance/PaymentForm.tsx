@@ -14,7 +14,7 @@ import { CustomerAccount } from './CustomerAccount'
 import { paymentDraft, updatePaymentDraft, clearPaymentDraft, discardPaymentDraft } from './draft'
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'all' })
 
-export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { actor: string; initialCustomer?: Customer; initialSale?: SaleSummary; onSaved: (payment: Payment) => void }) {
+export function PaymentForm({ actor, initialCustomer, initialSale, onSaved, embedded = false, onBusyChange, onDismiss }: { actor: string; initialCustomer?: Customer; initialSale?: SaleSummary; onSaved: (payment: Payment) => void; embedded?: boolean; onBusyChange?: (busy: boolean) => void; onDismiss?: () => void }) {
   const [draft] = useState(() => paymentDraft(actor, initialCustomer, initialSale))
   const [customer, setCustomer] = useState(draft.customer), [sale, setSale] = useState(draft.sale)
   const [amount, setAmount] = useState(draft.amount), [method, setMethod] = useState(draft.method)
@@ -24,6 +24,7 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
   const mounted = useRef(false), sending = useRef(false)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   useEffect(() => { updatePaymentDraft(actor, draft.key, { customer, sale, amount, method, pending }) }, [actor, draft.key, customer, sale, amount, method, pending])
+  useEffect(() => { onBusyChange?.(busy) }, [busy, onBusyChange])
   const locked = busy || !!pending
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -62,12 +63,12 @@ export function PaymentForm({ actor, initialCustomer, initialSale, onSaved }: { 
     } finally { sending.current = false; if (mounted.current) setBusy(false) }
   }
   return <>
-    <PageHeader title="Yeni tahsilat" description="Alınan ödemeyi seçtiğiniz satışın borcuna işleyin." actions={<a className="ui-button ui-button--secondary" href="#/tahsilatlar">Tahsilat geçmişi</a>} />
-    {draft.recovered && <RecoveryNotice history="#/tahsilatlar" disabled={busy} discard={() => discardPaymentDraft(actor)} />}
+    {!embedded && <PageHeader title="Yeni tahsilat" description="Alınan ödemeyi seçtiğiniz satışın borcuna işleyin." actions={<a className="ui-button ui-button--secondary" href="#/tahsilatlar">Tahsilat geçmişi</a>} />}
+    {draft.recovered && <RecoveryNotice history="#/tahsilatlar" disabled={busy} discard={() => { const cleared = discardPaymentDraft(actor); if (cleared) onDismiss?.(); return cleared }} />}
     <form className="finance-form" onSubmit={save} noValidate aria-busy={busy}>
       <Card title="Müşteri">
         {customer ? <div className="finance-selected"><strong>{customer.name}</strong><Button variant="ghost" disabled={locked} onClick={() => { setCustomer(null); setSale(null) }}>Müşteriyi değiştir</Button></div>
-          : <RecordPicker label="Tahsilat için müşteri ara" load={customers} disabled={locked} describe={value => value.phone || value.address}
+          : <RecordPicker searchRequired label="Müşteri ara…" load={customers} disabled={locked} describe={value => [value.phone, value.address?.slice(0, 140)].filter(Boolean).join(' · ')}
             onSelect={value => { setCustomer(value); setSale(null); setInvalid(current => ({ ...current, customer: undefined })) }} />}
         {invalid.customer && <p className="finance-validation" role="alert" tabIndex={-1} data-payment-validation>{invalid.customer}</p>}
       </Card>

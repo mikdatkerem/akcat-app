@@ -31,8 +31,8 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
     <div className="sale-record">
       <Card title="Müşteri ve satış" accessory={<PaymentBadge sale={sale} />}>
         <dl className="sale-details">
-          <div><dt>Müşteri</dt><dd>{sale.customer.name}</dd></div><div><dt>Telefon</dt><dd>{sale.customer.phone || 'Belirtilmedi'}</dd></div>
-          <div><dt>Adres</dt><dd>{sale.customer.address || 'Belirtilmedi'}<DirectionsLink address={sale.customer.address} /></dd></div><div><dt>Satış durumu</dt><dd>{sale.status === 'completed' ? 'Tamamlandı (teslim edildi)' : 'İptal edildi'}</dd></div>
+          <div><dt>Satış türü</dt><dd>{sale.sale_type === 'walk_in' ? 'Hızlı Satış' : 'Normal Satış'}</dd></div><div><dt>Müşteri</dt><dd>{sale.customer?.name ?? sale.customer_name}</dd></div>{sale.customer && <><div><dt>Telefon</dt><dd>{sale.customer?.phone || 'Belirtilmedi'}</dd></div>
+          <div><dt>Adres</dt><dd>{sale.customer?.address || 'Belirtilmedi'}<DirectionsLink address={sale.customer?.address ?? ''} /></dd></div></>}<div><dt>Satış durumu</dt><dd>{sale.status === 'completed' ? 'Tamamlandı (teslim edildi)' : 'İptal edildi'}</dd></div>
           <div><dt>İşlemi yapan</dt><dd>{sale.created_by_username}</dd></div><div><dt>Oluşturulma</dt><dd><time dateTime={sale.created_at}>{saleDate(sale.created_at)}</time></dd></div>
         </dl>
       </Card>
@@ -44,7 +44,7 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
           return <li key={item.id}>
             <div><div className="sale-price-indicator"><strong>{item.product_name_snapshot} × {item.quantity}</strong>
               {customPrice && <Badge tone="info">Özel fiyat</Badge>}</div>
-              <small>Liste fiyatı: {item.list_unit_price_kurus === null ? 'Bu eski kayıtta bulunmuyor.' : customPrice
+              <small>Liste fiyatı: {item.list_unit_price_kurus === null ? 'Katalog fiyatı kaydedilmemiş.' : customPrice
                 ? <del className="money">{formatMoney(item.list_unit_price_kurus)}</del> : <span className="money">{formatMoney(item.list_unit_price_kurus)}</span>}</small>
               <small>Satış fiyatı: <span className="money">{formatMoney(item.unit_price_kurus)}</span></small>
               {customPrice && difference !== null && totalDifference !== null && <>
@@ -63,7 +63,7 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
           <div><dt>Ödenen</dt><dd className="money">{formatMoney(sale.paid_kurus)}</dd></div>
           <div><dt>Kalan borç</dt><dd className="money">{formatMoney(sale.remaining_kurus)}</dd></div>
         </dl>
-        {sale.status === 'completed' && sale.remaining_kurus > 0 && <div className="finance-actions"><a className="ui-button ui-button--secondary" href={paymentHref(sale.customer_id, sale.id)}>Bu satışa tahsilat al</a></div>}
+        {sale.customer_id && sale.status === 'completed' && sale.remaining_kurus > 0 && <div className="finance-actions"><a className="ui-button ui-button--secondary" href={paymentHref(sale.customer_id, sale.id)}>Bu satışa tahsilat al</a></div>}
         {sale.payments.length === 0 ? <p className="sale-credit">Geçerli ödeme kaydı bulunmuyor.{sale.remaining_kurus > 0 ? ' Satış veresiye.' : ''}</p>
           : <ul className="sale-payment-list" aria-label="Geçerli ödeme hareketleri">{sale.payments.map(payment => <li key={payment.id}>
             <div><strong>{payment.is_initial ? 'İlk ödeme' : 'Ödeme'} · {methodLabels[payment.method]}</strong>
@@ -71,17 +71,17 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
           <a className="text-link" href={correctionHref('payment', payment.id)}>Tahsilat düzeltmesi / iade talebi</a>
           </li>)}</ul>}
       </Card>
+      <AdjustmentHistory filter={{ sale_id: sale.id }} />
+      <Card title="İptal ve düzeltme">
+        <CancelSale sale={sale} actor={actor} onSaved={retry} />
+        <div className="finance-actions"><a className="text-link" href={correctionHref('sale', sale.id)}>Düzeltme Talebi Oluştur</a></div>
+        {sale.cancellation_history.length > 0 && <ul className="correction-history" aria-label="İptal geçmişi">{sale.cancellation_history.map((log, index) => <li key={index}>
+          <strong>Satış iptal edildi</strong><span>{log.username} · {saleDate(log.created_at)}</span><p>{log.reason}</p>
+          {log.correction_id && <a className="text-link" href={'#/duzeltmeler/' + log.correction_id}>Onaylanan düzeltme talebi</a>}
+        </li>)}</ul>}
+        {sale.status === 'cancelled' && sale.cancellation_history.length === 0 && <p>Bu eski iptal için gerekçe ve kullanıcı bilgisi bulunmuyor.</p>}
+      </Card>
     </div>
-    <AdjustmentHistory filter={{ sale_id: sale.id }} />
-    <Card title="İptal ve düzeltme">
-      <CancelSale sale={sale} actor={actor} onSaved={retry} />
-      <div className="finance-actions"><a className="text-link" href={correctionHref('sale', sale.id)}>Düzeltme Talebi Oluştur</a></div>
-      {sale.cancellation_history.length > 0 && <ul className="correction-history" aria-label="İptal geçmişi">{sale.cancellation_history.map((log, index) => <li key={index}>
-        <strong>Satış iptal edildi</strong><span>{log.username} · {saleDate(log.created_at)}</span><p>{log.reason}</p>
-        {log.correction_id && <a className="text-link" href={'#/duzeltmeler/' + log.correction_id}>Onaylanan düzeltme talebi</a>}
-      </li>)}</ul>}
-      {sale.status === 'cancelled' && sale.cancellation_history.length === 0 && <p>Bu eski iptal için gerekçe ve kullanıcı bilgisi bulunmuyor.</p>}
-    </Card>
     <a className="text-link" href="#/satislar">Satış geçmişine dön</a>
   </>
 }

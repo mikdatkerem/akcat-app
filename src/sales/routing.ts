@@ -5,6 +5,6 @@ export const useSaleLocation = () => useSyncExternalStore(subscribe, () => windo
 export const saleHref = (id: string) => `#/satislar/${encodeURIComponent(id)}`
 export function saleListHref(filter: SaleFilter) {
   const query = new URLSearchParams({ page: String(filter.page), pageSize: String(filter.pageSize) })
-  for (const key of ['customer_id', 'from', 'to'] as const) if (filter[key]) query.set(key, filter[key])
+  for (const key of ['customer_id', 'from', 'to', 'day', 'status', 'q', 'start_date', 'end_date'] as const) if (filter[key]) query.set(key, filter[key])
   return `#/satislar?${query}`
 }

@@ -218,6 +218,10 @@ akcat-app/
 
 ## Geliştirme durumu
 
+Tüm ekranlar ortak koyu tema tokenlarını ve `logo_darkmode.png` görselini kullanır. Dashboard, kökte sağlanan `background.png` dosyasının `src/assets/background.png` kopyasını kullanır; fotoğraf, koyu metin ve mavi satış butonları kendi renk kapsamını korur. Yeni Satış/Hızlı Satış aynı formun ilgili modunu açar ve bekleyen işlemler korunur. Müşteri/ürün/personel listelerinde yetkilere uygun ortak üç nokta menüsü; masaüstü tablo başlıklarında kısa dikey ayraçlar vardır. Personel Yönetimi mevcut `#/calisanlar` adresini kullanır. Satış detayı satır sonundaki bilgi simgesinden açılır. Satışlar/Tahsilatlar/Veresiye filtreleri kapalı başlayıp açılan ortak kart içindedir; tutar filtreleri sunucuda uygulanır. Filtre sözleşmesi: [FINANCE.md](../akcat-api/docs/FINANCE.md).
+
+İzole yeni akış kontrolü: `node tests/run-isolated.mjs --suite dashboardFilters --playwright-dir <kurulu-playwright-paket-dizini>`. Tutar aralığı birim kontrolü: `node --experimental-strip-types --test tests/amount-range.test.mjs`. Test verileri yalnızca geçici test D1'ında oluşturulur.
+
 AKÇAT, gerçek işletme süreçlerine göre geliştirilen ve iyileştirilmeye devam edilen bir projedir. Web uygulaması mobil ekranlarda da çalışır; **ayrı bir yerel mobil uygulama şu anda bu depoya dahil değildir**.
 
 ---
@@ -230,3 +234,11 @@ AKÇAT, gerçek işletme süreçlerine göre geliştirilen ve iyileştirilmeye d
 ## Güvenilirlik güncellemesi (30.10.2026)
 
 Satışta beklenen liste fiyatı, müşteri/ürün PATCH işlemlerinde sürüm ve idempotency anahtarı kullanılır. Admin ürün detayında gerçek fiyat geçmişini görür. Yeni izole tarayıcı runner’ı: `node tests/run-isolated.mjs --suite all --playwright-dir <kurulu-playwright-paket-dizini>`. Paket kurmaz; her suite için geçici test DB oluşturup temizler. Sözleşme, migration ve kontrollü yayın/geri dönüş planı: [RELIABILITY.md](../akcat-api/docs/RELIABILITY.md).
+
+## Müşteri formunda harita
+
+Leaflet/OSM modalı, koordinatla Google Maps yol tarifi ve isteğe bağlı Geoapify reverse geocoding eklendi. Manuel adres girişi korunur. Migration, secret, CSP ve yayın sırası: [CUSTOMER_LOCATION.md](../akcat-api/docs/CUSTOMER_LOCATION.md).
+
+Müşteri formunda 450 ms benzerlik ön kontrolü, maskeli panel ve güçlü eşleşmede sunucuya bağlı onay eklendi. Yeni 0007 migration ve API birlikte gereklidir: [CUSTOMER_DUPLICATES.md](../akcat-api/docs/CUSTOMER_DUPLICATES.md).
+
+Operasyonel ekranlar: harita seçicisi `src/config/features.ts` ile geçici kapalı; adres isteğe bağlı; ürün fiyatı nullable; satış/tahsilat/veresiye günlük tablo, müşteri tahsilatı FIFO önizlemelidir. Yeni API ve 0008/0009 şeması birlikte gerekir. Ayrıntılar ve manuel kontrol listesi: [Operasyonel sürüm](../akcat-api/docs/OPERATIONS.md). Bu görevde frontend/Playwright testleri çalıştırılmaz.

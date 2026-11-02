@@ -17,7 +17,6 @@ export function NavigationLinks({ page, label, role, onNavigate }: {
         <a href={item.href} className="sidebar-link" onClick={onNavigate}
           aria-current={page === item.id ? 'page' : undefined}>
           <Icon name={item.icon} /><span>{item.label}</span>
-          {page === item.id && <span className="sidebar-link__indicator" aria-hidden="true" />}
         </a>
         </Fragment>
       ))}

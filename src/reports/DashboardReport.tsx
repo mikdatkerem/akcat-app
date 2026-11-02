@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Button, Card, EmptyState, ErrorState, LoadingState } from '../components/ui'
+import { Button, Card, EmptyState, ErrorState, Icon, LoadingState } from '../components/ui'
 import { getSummaryReport } from '../services/reports'
 import { useResource } from '../hooks/useResource'
 import { Metrics, ReportTable } from './ReportParts'
@@ -12,7 +12,7 @@ import './reports.css'
 export function DashboardReport() {
   const load = useCallback(() => getSummaryReport(), []), { result, retry } = useResource('dashboard:today', load)
   return <section className="dashboard-report" aria-label="Güncel finansal özet">
-    <div className="report-section-heading"><h2>Bugünkü işletme özeti</h2><Button variant="secondary" onClick={retry}>Özeti Yenile</Button></div>
+    <div className="report-section-heading"><h2>Bugünkü işletme özeti</h2><Button variant="secondary" onClick={retry}><Icon name="rotate" width="20" height="20" strokeWidth="2" />Özeti Yenile</Button></div>
     {!result ? <LoadingState label="İşletme özeti yükleniyor…" /> : result.error ? <ErrorState title="İşletme özeti yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       <div className="report-range"><p>Rapor zamanı: <time dateTime={result.data.range.generated_at}>{saleDate(result.data.range.generated_at)}</time></p></div>
       <Metrics values={[
@@ -24,7 +24,7 @@ export function DashboardReport() {
       <p className="report-help">Bugünün son 10 işlemi. Önceki kayıtlar için raporları kullanın.</p>
       {result.data.recent.length === 0 ? <Card title="Bugünkü işlem geçmişi"><EmptyState title="Henüz işlem bulunmuyor." description="Bugün kayıtlı hareket yok. Önceki günlerdeki işlemler raporlarda görüntülenebilir." /></Card> : <ReportTable rows={result.data.recent} rowKey={row => row.id} label="Bugünkü son işlemler" columns={[
         { label: 'İşlem türü', cell: row => row.type === 'record_reversal' ? 'Hatalı tahsilat ters kaydı' : row.type === 'external_refund' ? 'Harici para iadesi' : row.type === 'payment' ? 'Tahsilat' : row.type === 'cancellation' ? 'Satış iptali' : row.status === 'cancelled' ? 'Satış (iptal edildi)' : 'Satış' },
-        { label: 'Müşteri', cell: row => <a className="text-link" href={row.sale_id ? saleHref(row.sale_id) : customerHref(row.customer_id)}>{row.customer_name}</a> },
+        { label: 'Müşteri', cell: row => row.sale_id || row.customer_id ? <a className="text-link" href={row.sale_id ? saleHref(row.sale_id) : customerHref(row.customer_id!)}>{row.customer_name}</a> : <span>{row.customer_name}</span> },
         { label: 'Tutar', cell: row => <span className="money">{formatMoney(row.amount_kurus)}</span> }, { label: 'İşlemi yapan', cell: row => row.created_by_username }, { label: 'Tarih', cell: row => saleDate(row.created_at) },
       ]} />}
     </>}

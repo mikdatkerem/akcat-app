@@ -23,7 +23,7 @@ import './App.css'
 function App() {
   const page = usePage()
   const auth = useSession()
-  const title = page === 'overview' ? 'Genel Bakış' : page === 'customers' ? 'Müşteriler' : page === 'products' ? 'Ürünler' : page === 'sales' ? 'Satışlar' : page === 'payments' ? 'Tahsilatlar' : page === 'credit' ? 'Veresiye' : page === 'corrections' ? 'Düzeltme Talepleri' : page === 'reports' ? 'Raporlar' : page === 'users' ? 'Çalışanlar' : page === 'menu' ? 'Menü' : 'Sayfa bulunamadı'
+  const title = page === 'overview' ? 'Genel Bakış' : page === 'customers' ? 'Müşteriler' : page === 'products' ? 'Ürünler' : page === 'sales' ? 'Satışlar' : page === 'payments' ? 'Tahsilatlar' : page === 'credit' ? 'Veresiye' : page === 'corrections' ? 'Düzeltme Talepleri' : page === 'reports' ? 'Raporlar' : page === 'users' ? 'Personel Yönetimi' : page === 'menu' ? 'Menü' : 'Sayfa bulunamadı'
 
   if (auth.status === 'checking') return <AuthScreen title="Oturum kontrol ediliyor"><LoadingState label="Lütfen bekleyin…" /></AuthScreen>
   if (auth.status === 'unavailable') return <AuthScreen title="Oturum kontrol edilemedi">

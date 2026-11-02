@@ -1,0 +1,28 @@
+.location-dialog {
+  color-scheme: dark;
+  width: min(640px, calc(100% - 24px)); max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  padding: 0; border: var(--border-default); border-radius: var(--radius-lg); color: var(--color-text); background: var(--color-surface); overflow-y: auto;
+}
+.location-dialog::backdrop { background: rgb(0 0 0 / 60%); }
+.location-dialog header, .location-dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; }
+.location-dialog header h2, .location-dialog header p { margin: 0; }
+.location-dialog header h2 { font-size: 20px; }
+.location-dialog header { border-bottom: var(--border-default); }
+.location-dialog__body { padding: 16px; min-width: 0; }
+.location-dialog footer { position: sticky; bottom: 0; justify-content: flex-end; background: var(--color-surface); border-top: var(--border-default); padding-bottom: max(16px, env(safe-area-inset-bottom)); z-index: 1001; }
+.location-dialog p { overflow-wrap: anywhere; }
+.location-help { font-size: 13px; margin: 0 0 12px; }
+.location-help a { text-decoration: underline; }
+.customer-map { height: clamp(200px, 35dvh, 300px); width: 100%; background: var(--color-surface-muted); border-radius: 6px; }
+.customer-map .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; }
+.customer-map-pin { background: transparent; border: 0; }
+.customer-map-pin span { display: block; width: 26px; height: 26px; border: 3px solid #fff; background: var(--color-primary); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 1px 4px #475569; }
+.location-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.location-coordinates { font-variant-numeric: tabular-nums; font-size: 13px; }
+.location-dialog .ui-control { background: var(--color-surface); color: var(--color-text); }
+.location-dialog :focus-visible { outline-color: var(--color-primary); }
+@media (max-width: 359px) { .location-dialog header, .location-dialog footer, .location-dialog__body { padding-inline: 12px; } .location-dialog footer .ui-button { flex: 1; } }
+
+.customer-map .leaflet-bar a, .customer-map .leaflet-control-attribution { background: var(--color-surface); color: var(--color-text); }
+.customer-map .leaflet-bar a:hover { background: var(--color-surface-muted); }
+.customer-map .leaflet-control-attribution a { color: var(--color-text); }

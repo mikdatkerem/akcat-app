@@ -83,7 +83,7 @@ export async function verifyDirections(browserPage, metadataPath) {
     const mobilePage = await mobile.newPage()
     for (const path of [customerPath(customer.id), salePath(sale.id)]) {
       await mobilePage.goto(path); await link(mobilePage).waitFor()
-      assert.equal(await link(mobilePage).getAttribute('target'), null)
+      assert.equal(await link(mobilePage).getAttribute('target'), '_blank')
       for (const width of [320, 390]) {
         await mobilePage.setViewportSize({ width, height: 950 })
         assert.ok(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
@@ -91,11 +91,17 @@ export async function verifyDirections(browserPage, metadataPath) {
         assert.ok(bounds.height >= 44 && bounds.width >= 44)
         assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width)
       }
-      await link(mobilePage).click(); await mobilePage.waitForURL('https://www.google.com/maps/dir/**')
+      const mobilePopupPromise = mobile.waitForEvent('page')
+      await link(mobilePage).click()
+      const mobilePopup = await mobilePopupPromise
+      await mobilePopup.waitForURL('https://www.google.com/maps/dir/**')
+      assert.equal(mobilePage.url(), path)
+      assert.equal(await mobilePopup.evaluate(() => window.opener === null), true)
+      await mobilePopup.close()
       assert.equal(mobile.pages().length, 1)
       assert.equal(external.at(-1).url, href); assert.equal(external.at(-1).referer, undefined)
     }
-    pass('touch/mobile customer and sale actions navigate in the same tab using the universal URL; 320/390px targets fit and reach 44px')
+    pass('touch/mobile customer and sale actions open a new tab using the universal URL; 320/390px targets fit and reach 44px')
 
     await sql('UPDATE customers SET address=? WHERE id=?', ['', customer.id])
     for (const path of [customerPath(customer.id), salePath(sale.id)]) {

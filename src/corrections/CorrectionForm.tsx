@@ -22,7 +22,7 @@ export function CorrectionForm({ actor, target, id, onSaved }: { actor: string; 
     <p className="sale-help">Talep oluşturmak finansal kayıtları değiştirmez; admin onayı gerekir.</p>
     <HelpDisclosure title="Hangi düzeltmeler yapılabilir?">
       <p>Tam hatalı tahsilat ters kaydı veya fiilen yapılmış harici iade admin tarafından uygulanabilir.</p>
-      <p>Ödemeli satış, bütün ödemeleri bu süreçlerle kapatıldıktan sonra ayrı taleple iptal edilebilir.</p>
+      <p>Normal ödemeli satış, bütün ödemeleri bu süreçlerle kapatıldıktan sonra ayrı taleple iptal edilebilir. Hızlı satışın tam iade/ters kaydı, satışı aynı işlemde iptal eder ve borç oluşturmaz.</p>
       <p>Tutar/yöntem değiştirme ve kısmi düzeltme desteklenmez.</p>
     </HelpDisclosure>
     <form className="correction-form" onSubmit={submit}>

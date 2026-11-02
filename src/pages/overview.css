@@ -1,0 +1,61 @@
+.overview-welcome {
+  /* Fotoğraf ve açık metin alanı korunur; aksiyonlar ortak marka rengini kullanır. */
+  color-scheme: light;
+  --color-secondary-surface: #ffffff;
+  --color-secondary-text: #1e293b;
+  --color-secondary-border: #dce4ed;
+  --color-secondary-hover: #f1f5f9;
+  --color-focus: #1e293b;
+  --color-hero-background: #eff6ff;
+  --color-surface: #ffffff;
+  --color-text: #1e293b;
+  --color-border: #dce4ed;
+  --border-default: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+}
+.overview-welcome { display: flex; width: 100%; align-items: flex-end; min-height: 520px; padding: var(--space-3); overflow: hidden; border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-hero-background) url('/src/assets/background.png') 86% center / cover no-repeat; margin-bottom: var(--space-6); }
+.overview-welcome__content { width: 100%; min-width: 0; padding: var(--space-3); }
+.overview-welcome__eyebrow { margin: 0 0 var(--space-3); font-size: var(--font-size-help); font-weight: var(--font-weight-semibold); letter-spacing: .06em; color: var(--color-text); }
+.overview-welcome h2 { font-size: clamp(24px, 2.8vw, 40px); line-height: 1.12; letter-spacing: -.035em; margin: 0; font-weight: 700; }
+.overview-welcome__copy > p:last-of-type { margin: var(--space-4) 0 var(--space-5); color: var(--color-text); }
+.overview-welcome__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.overview-welcome__actions .ui-button { min-height: 48px; }
+@media (max-width: 767px) {
+  .overview-welcome {
+    min-height: 520px;
+    padding: var(--space-4);
+    align-items: stretch;
+    background-position: 86% center;
+    background-size: cover;
+  }
+  .overview-welcome__content { display: flex; flex-direction: column; padding: 0; }
+  .overview-welcome__copy {
+    max-width: 360px;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: rgb(255 255 255 / 82%);
+  }
+  .overview-welcome__copy > p:last-of-type { margin-bottom: 0; }
+  .overview-welcome__actions { margin-top: auto; padding-top: var(--space-6); }
+}
+@media (max-width: 599px) {
+  .overview-welcome {
+    aspect-ratio: 941 / 1672;
+    background-image: url('/src/assets/background_mobil.png');
+    background-position: center center;
+  }
+  .overview-welcome__copy {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+}
+@media (max-width: 359px) {
+  .overview-welcome { padding: var(--space-3); }
+  .overview-welcome h2 { font-size: 22px; }
+  .overview-welcome__actions .ui-button { width: 100%; }
+}
+@media (min-width: 768px) {
+  .overview-welcome { aspect-ratio: 2.05; min-height: 360px; max-height: 640px; align-items: center; padding: clamp(20px, 2.3vw, 32px); background-position: center 40%; }
+  .overview-welcome__content { width: clamp(380px, 52%, 520px); padding: var(--space-5); }
+}

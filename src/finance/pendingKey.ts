@@ -1,6 +1,6 @@
 // Only an opaque idempotency UUID is persisted per public user ID and operation.
 // Never store credentials, CSRF, request bodies, customer data, prices or amounts.
-type Kind = 'sale' | 'payment'
+type Kind = 'sale' | 'payment' | 'collection'
 const storageKey = (actor: string, kind: Kind) => `akcat:pending:v1:${actor}:${kind}`
 export function recoverKey(actor: string, kind: Kind): string | null {
   try { return sessionStorage.getItem(storageKey(actor, kind)) } catch { return null }

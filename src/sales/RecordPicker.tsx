@@ -3,14 +3,14 @@ import { Button, EmptyState, ErrorState, Input, LoadingState } from '../componen
 import { useResource } from '../hooks/useResource'
 
 type Results<T> = { data: T[]; pagination: { page: number; totalPages: number } }
-export function RecordPicker<T extends { id: string; name: string }>({ label, load, onSelect, describe, disabled = false, excluded = [] }: {
+export function RecordPicker<T extends { id: string; name: string }>({ label, load, onSelect, describe, disabled = false, excluded = [], searchRequired = false }: {
   label: string; load: (q: string, page: number) => Promise<Results<T>>; onSelect: (value: T) => void;
-  describe: (value: T) => ReactNode; disabled?: boolean; excluded?: string[]
+  describe: (value: T) => ReactNode; disabled?: boolean; excluded?: string[]; searchRequired?: boolean
 }) {
   const [text, setText] = useState('')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
-  const fetch = useCallback(() => load(query, page), [load, query, page])
+  const fetch = useCallback(() => searchRequired && !query ? Promise.resolve({ data: [], pagination: { page: 1, totalPages: 0 } }) : load(query, page), [load, query, page, searchRequired])
   const { result, retry } = useResource(`${query}:${page}`, fetch)
   function search() {
     if (disabled) return
@@ -21,9 +21,9 @@ export function RecordPicker<T extends { id: string; name: string }>({ label, lo
     <div className="sale-picker-search" role="search" aria-label={label}>
       <Input label={label} type="search" value={text} maxLength={100} disabled={disabled} onChange={event => setText(event.target.value)}
         onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); search() } }} />
-      <Button variant="secondary" disabled={disabled} onClick={search}>Ara</Button>
+      <Button variant="primary" disabled={disabled} onClick={search}>Ara</Button>
     </div>
-    {!result ? <LoadingState label="Seçenekler yükleniyor…" /> : result.error ? <ErrorState title="Seçenekler yüklenemedi" description={result.error} onRetry={retry} />
+    {searchRequired && !query ? <p className="finance-filter-hint">Müşteri adı veya telefonuyla arayın.</p> : !result ? <LoadingState label="Seçenekler yükleniyor…" /> : result.error ? <ErrorState title="Seçenekler yüklenemedi" description={result.error} onRetry={retry} />
       : result.data && <>
         {result.data.data.length === 0 ? <EmptyState title="Kayıt bulunamadı" description="Aramayı değiştirin veya ilgili kaydı ekleyin." />
           : <ul className="sale-options">{result.data.data.map(value => <li key={value.id}>

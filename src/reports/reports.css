@@ -18,7 +18,7 @@
 .report-table-surface { min-width: 0; border: var(--border-default); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
 .report-table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--font-size-help); }
 .report-table th, .report-table td { padding: var(--space-4); border-bottom: var(--border-default); vertical-align: top; overflow-wrap: anywhere; }
-.report-table th { color: var(--color-text-secondary); background: var(--color-surface-muted); font-weight: var(--font-weight-medium); }
+.report-table th { color: var(--color-text-secondary); background: var(--color-row-alternate); font-weight: var(--font-weight-medium); }
 .report-table tr:last-child td { border-bottom: 0; }
 .report-table td small, .report-table td strong, .report-table td > a, .report-table td > span.money { display: block; }
 .report-table td small { color: var(--color-text-secondary); margin-top: var(--space-1); }

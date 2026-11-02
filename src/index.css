@@ -8,7 +8,7 @@
   line-height: var(--line-height);
   color: var(--color-text);
   background: var(--color-background);
-  color-scheme: light;
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,11 +20,16 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 a { color: inherit; text-decoration: none; }
 button, input, select { font-family: inherit; }
 svg { flex-shrink: 0; }
-.brand-logo { display: block; width: auto; height: 44px; max-width: 100%; object-fit: contain; }
-:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
-::selection { color: var(--color-primary-hover); background: var(--color-primary-100); }
+.brand-logo { display: block; width: 132px; height: auto; margin-block: -15px; max-width: 100%; object-fit: contain; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+::selection { color: var(--color-selection-text); background: var(--color-menu-active); }
 .numeric, .money { font-variant-numeric: tabular-nums; }
-.money { text-align: right; white-space: nowrap; }
+.money { text-align: right; white-space: nowrap; font-weight: var(--font-weight-medium); }
 .money--prominent { font-size: var(--font-size-amount); font-weight: var(--font-weight-semibold); }
-.text-link { display: inline-flex; align-items: center; min-height: var(--touch-target); margin-top: var(--space-4); color: var(--color-primary-active); text-decoration: underline; text-underline-offset: 3px; }
+/* Kısa başlık ayraçları; mobilde gizlenen thead ile birlikte gizlenir. */
+table thead th { position: relative; }
+table thead th:not(:last-child)::after { content: ''; position: absolute; inset-inline-end: 0; top: 50%; width: 1px; height: 24px; transform: translateY(-50%); background: var(--color-table-divider); pointer-events: none; }
+.text-link { display: inline-flex; align-items: center; min-height: var(--touch-target); margin-top: var(--space-4); color: var(--color-link); text-decoration: underline; text-underline-offset: 3px; }
+:is(.text-link, .finance-link, .customer-name, .customer-detail-link, .product-name, .product-action):hover { color: var(--color-primary); text-decoration-thickness: 2px; }
+table tbody tr:hover { background: var(--color-row-hover); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }

@@ -39,7 +39,7 @@ export function UserForm({ account, actor, onSaved }: { account?: ManagedUser; a
     else void send(body)
   }
   return <>
-    <PageHeader title={account ? 'Çalışanı düzenle' : 'Çalışan ekle'} description="Hesapları yalnızca yöneticiler yönetebilir. Finansal geçmiş korunur." />
+    <PageHeader title={account ? 'Personeli düzenle' : 'Personel ekle'} description="Hesapları yalnızca yöneticiler yönetebilir. Finansal geçmiş korunur." />
     <Card title="Hesap bilgileri" className="user-form-panel"><form className="user-form" noValidate onSubmit={submit} aria-busy={busy}>
       <Input label="Kullanıcı adı" name="username" value={username} required maxLength={128} autoComplete="off" autoCapitalize="none" spellCheck={false} disabled={locked} error={fields.username} onChange={event => setUsername(event.target.value)} />
       {!account && <Input label="Başlangıç parolası" name="password" type="password" value={password} autoComplete="new-password" required maxLength={128} disabled={locked} error={fields.password}

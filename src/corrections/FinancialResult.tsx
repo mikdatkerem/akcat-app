@@ -31,7 +31,7 @@ export function FinancialResult({ row }: { row: Correction }) {
         {row.adjustment.external_reference && <><div><dt>Harici referans</dt><dd>{row.adjustment.external_reference}</dd></div>
           <div><dt>Admin teyit tarihi</dt><dd>{saleDate(row.adjustment.external_confirmed_at!)}</dd></div></>}</>}
     </dl><a className="text-link" href={saleHref(data.sale_id)}>İlgili satış ve düzeltme geçmişi</a>
-    <p className="sale-help">{row.adjustment ? 'Bunlar uygulama anındaki bakiyelerdir; güncel borç satış veya müşteri detayındadır.'
+    <p className="sale-help">{data.sale_type === 'walk_in' ? 'Tam finansal düzeltme hızlı satışı aynı atomik işlemde iptal eder; müşteri borcu oluşmaz. Gerçek para iadesi için harici ödeme ve admin teyidi gerekir.' : row.adjustment ? 'Bunlar uygulama anındaki bakiyelerdir; güncel borç satış veya müşteri detayındadır.'
       : 'Tam ters kayıt veya teyitli iade aktif satışın borcunu yeniden açar. Satış iptali ayrı bir admin onayıdır.'}</p>
   </section>
 }

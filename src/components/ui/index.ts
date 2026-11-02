@@ -1,4 +1,5 @@
 export { Button } from './Button'
+export { ActionMenu } from './ActionMenu'
 export { DeleteConfirmation } from './DeleteConfirmation'
 export { Input } from './Input'
 export { Textarea } from './Textarea'

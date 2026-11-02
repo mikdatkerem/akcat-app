@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type F
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { useResource } from '../hooks/useResource'
-import { deleteUser, getUser, listUsers, type ManagedUser, type UserFilter } from '../services/users'
-import { DeleteRecordAction } from '../components/DeleteRecordAction'
+import { getUser, listUsers, type ManagedUser, type UserFilter } from '../services/users'
+import { UserActions } from './UserActions'
 import { Pagination } from '../finance/Pagination'
 import { UserForm } from './UserForm'
 import { PasswordReset } from './PasswordReset'
@@ -24,30 +24,21 @@ function UserList({ actor }: { actor: string }) {
   }
   function submit(event: FormEvent) { event.preventDefault(); setSearch(q.trim()); setPage(1); if (search === q.trim()) retry() }
   return <>
-    <PageHeader title="Çalışanlar" description="Kullanıcı hesapları, roller ve oturum güvenliği." actions={<a className="ui-button ui-button--primary" href="#/calisanlar/yeni">Çalışan ekle</a>} />
+    <PageHeader title="Personel Yönetimi" description="Kullanıcı hesapları, roller ve oturum güvenliği." actions={<a className="ui-button ui-button--primary" href="#/calisanlar/yeni">Personel ekle</a>} />
     {notice && <p className="user-success" role="status">{notice}</p>}
     <form className="user-filters" onSubmit={submit}><Input label="Kullanıcı adı ara" type="search" value={q} maxLength={100} onChange={event => setQ(event.target.value)} />
       <Select label="Hesap durumu filtresi" value={status} onChange={event => { setStatus(event.target.value as UserFilter['status']); setPage(1) }}><option value="all">Tümü</option><option value="active">Aktif</option><option value="inactive">Pasif</option></Select>
-      <Button variant="secondary" type="submit">Ara</Button></form>
-    {!result ? <LoadingState label="Hesaplar yükleniyor…" /> : result.error ? <ErrorState title="Çalışanlar yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
-      {result.data.data.length === 0 ? <Card title="Çalışan hesapları"><EmptyState title="Hesap bulunamadı" description="Bu arama ve durum filtresiyle eşleşen hesap yok." /></Card> : <div className="user-list-surface"><table className="user-table">
-        <caption className="visually-hidden">Çalışan hesapları</caption><thead><tr><th>Kullanıcı adı</th><th>Rol</th><th>Hesap durumu</th><th>Oluşturulma</th><th>İşlem</th></tr></thead>
+      <Button variant="primary" type="submit">Ara</Button></form>
+    {!result ? <LoadingState label="Hesaplar yükleniyor…" /> : result.error ? <ErrorState title="Personel listesi yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
+      {result.data.data.length === 0 ? <Card title="Personel hesapları"><EmptyState title="Hesap bulunamadı" description="Bu arama ve durum filtresiyle eşleşen hesap yok." /></Card> : <div className="user-list-surface"><table className="user-table">
+        <caption className="visually-hidden">Personel hesapları</caption><thead><tr><th scope="col">Kullanıcı adı</th><th scope="col">Rol</th><th scope="col">Hesap durumu</th><th scope="col">Oluşturulma</th><th scope="col"><span className="visually-hidden">İşlem</span></th></tr></thead>
         <tbody>{result.data.data.map(user => <tr key={user.id}><td data-label="Kullanıcı adı"><a className="text-link" href={href(user.id)}>{user.username}</a></td>
           <td data-label="Rol">{user.role === 'admin' ? 'Admin' : 'Çalışan'}</td><td data-label="Hesap durumu"><Badge tone={user.is_active ? 'success' : 'neutral'}>{user.is_active ? 'Aktif' : 'Pasif'}</Badge></td>
           <td data-label="Oluşturulma"><time dateTime={user.created_at}>{date.format(new Date(user.created_at))}</time></td><td>
-            <details className="record-actions-menu" onKeyDown={event => {
-              if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() }
-            }}><summary aria-label={`${user.username} hesap işlemleri`}>İşlemler</summary>
-              <div className="record-actions-options"><a className="ui-button ui-button--ghost" href={href(user.id) + '/duzenle'}>Düzenle</a>
-                <DeleteRecordAction recordName={user.username} title="Hesap kalıcı olarak silinsin mi?"
-                  description="Yalnızca geçmiş finansal veya bağlı denetim kaydı bulunmayan hesaplar silinebilir. Tüm mevcut oturumları geçersiz olur. Bu işlem geri alınamaz."
-                  disabledReason={user.id === actor ? 'Kendi hesabınızı silemezsiniz.' : undefined}
-                  remove={key => deleteUser(user.id, key)} onDeleted={deleted} />
-              </div>
-            </details>
+            <UserActions user={user} actor={actor} onDeleted={deleted} />
           </td></tr>)}</tbody>
       </table></div>}
-      <Pagination page={result.data.pagination} label="Çalışan sayfaları" onPage={setPage} />
+      <Pagination page={result.data.pagination} label="Personel sayfaları" onPage={setPage} />
     </>}
   </>
 }
@@ -64,7 +55,7 @@ function UserRecord({ id, mode, actor, notice, saved }: { id: string; mode?: str
     <Card title="Hesap bilgileri" accessory={<Badge tone={user.is_active ? 'success' : 'neutral'}>{user.is_active ? 'Aktif' : 'Pasif'}</Badge>}>
       <dl className="user-details"><div><dt>Kullanıcı adı</dt><dd>{user.username}</dd></div><div><dt>Rol</dt><dd>{user.role === 'admin' ? 'Admin' : 'Çalışan'}</dd></div>
         <div><dt>Oluşturulma</dt><dd>{date.format(new Date(user.created_at))}</dd></div><div><dt>Güncellenme</dt><dd>{date.format(new Date(user.updated_at))}</dd></div></dl>
-      <div className="user-actions"><a className="ui-button ui-button--secondary" href={href(id) + '/parola'}>Parola sıfırla</a><a className="ui-button ui-button--ghost" href="#/calisanlar">Çalışan listesine dön</a></div>
+      <div className="user-actions"><a className="ui-button ui-button--secondary" href={href(id) + '/parola'}>Parola sıfırla</a><a className="ui-button ui-button--ghost" href="#/calisanlar">Personel listesine dön</a></div>
     </Card>
   </>
 }
