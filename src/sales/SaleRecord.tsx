@@ -73,8 +73,10 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
       </Card>
       <AdjustmentHistory filter={{ sale_id: sale.id }} />
       <Card title="İptal ve düzeltme">
+        <div className="sale-correction-actions">
         <CancelSale sale={sale} actor={actor} onSaved={retry} />
-        <div className="finance-actions"><a className="text-link" href={correctionHref('sale', sale.id)}>Düzeltme Talebi Oluştur</a></div>
+        <a className="ui-button ui-button--secondary" href={correctionHref('sale', sale.id)}>Düzeltme Talebi Oluştur</a>
+        </div>
         {sale.cancellation_history.length > 0 && <ul className="correction-history" aria-label="İptal geçmişi">{sale.cancellation_history.map((log, index) => <li key={index}>
           <strong>Satış iptal edildi</strong><span>{log.username} · {saleDate(log.created_at)}</span><p>{log.reason}</p>
           {log.correction_id && <a className="text-link" href={'#/duzeltmeler/' + log.correction_id}>Onaylanan düzeltme talebi</a>}

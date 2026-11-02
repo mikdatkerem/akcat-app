@@ -3,7 +3,7 @@ import { RecoveryNotice } from '../finance/RecoveryNotice'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Badge, Button, Card, ErrorState, Icon, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
-import { listCustomers } from '../services/customers'
+import { listCustomers, type Customer } from '../services/customers'
 import { listProducts } from '../services/products'
 import { createSale, type PaymentMethod, type Sale, type SaleInput } from '../services/sales'
 import { ApiError } from '../services/apiClient'
@@ -15,12 +15,14 @@ import { clearSaleDraft, discardSaleDraft, saleDraft, updateSaleDraft } from './
 
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'active' })
 const products = (q: string, page: number) => listProducts({ q, page, pageSize: 5, status: 'active' })
-export function SaleForm({ actor, requestedMode, onSaved }: { actor: string; requestedMode?: 'normal' | 'walk_in'; onSaved: (sale: Sale) => void }) {
+export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embedded = false, onBusyChange }: {
+  actor: string; requestedMode?: 'normal' | 'walk_in'; initialCustomer?: Customer; onSaved: (sale: Sale) => void; embedded?: boolean; onBusyChange?: (busy: boolean) => void
+}) {
   const [draft] = useState(() => saleDraft(actor))
   // Never reinterpret a request whose result is unknown. Unsubmitted fields survive mode changes.
   const [saleType, setSaleType] = useState(draft.pending || draft.recovered ? draft.saleType : requestedMode ?? draft.saleType), [walkInName, setWalkInName] = useState(draft.walkInName), [quickMethod, setQuickMethod] = useState(draft.quickMethod)
   const quick = saleType === 'walk_in'
-  const [customer, setCustomer] = useState(draft.customer)
+  const [customer, setCustomer] = useState(draft.pending || draft.recovered ? draft.customer : initialCustomer ?? draft.customer)
   const [lines, setLines] = useState(() => draft.lines.map(line => ({ ...line,
     unitPrice: line.unitPrice ?? catalogInput(line.product.current_price_kurus) })))
   const [payment, setPayment] = useState(draft.payment)
@@ -32,6 +34,7 @@ export function SaleForm({ actor, requestedMode, onSaved }: { actor: string; req
   const [pending, setPending] = useState<SaleInput | null>(draft.pending)
   const sending = useRef(false), mounted = useRef(false), key = useRef(draft.key)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
+  useEffect(() => { onBusyChange?.(busy) }, [busy, onBusyChange])
   useEffect(() => { updateSaleDraft(actor, draft.key, { saleType, walkInName, quickMethod, customer, lines, payment, method, pending }) }, [saleType, walkInName, quickMethod, actor, draft.key, customer, lines, payment, method, pending])
   let total: number | undefined, paid: number | undefined, calculationError = ''
   try { total = sumLines(lines.map(line => ({ price: unitPriceValue(line.unitPrice), quantity: line.quantity }))) }
@@ -83,9 +86,10 @@ export function SaleForm({ actor, requestedMode, onSaved }: { actor: string; req
     } finally { sending.current = false; if (mounted.current) setBusy(false) }
   }
   return <>
-    <PageHeader title="Yeni Satış" description="Kaydettiğiniz satış, teslimatın gerçekleştiğini belirtir."
-      actions={<a className="ui-button ui-button--secondary" href="#/satislar">Satış geçmişi</a>} />
+    {!embedded && <PageHeader title="Yeni Satış" description="Kaydettiğiniz satış, teslimatın gerçekleştiğini belirtir."
+      actions={<a className="ui-button ui-button--secondary" href="#/satislar">Satış geçmişi</a>} />}
     {draft.recovered && <RecoveryNotice history="#/satislar" disabled={busy} discard={() => discardSaleDraft(actor)} />}
+    {initialCustomer && (draft.pending || draft.recovered) && initialCustomer.id !== draft.customer?.id && <p className="finance-info" role="status">Önceki satışın sonucu doğrulanmadığı için o işlemin müşteri bilgisi korundu. Yeni satıştan önce işlem geçmişini kontrol edin.</p>}
     {requestedMode && requestedMode !== draft.saleType && <p className="finance-info" role="status">{draft.pending || draft.recovered
       ? 'Önceki satışın sonucu henüz doğrulanmadı. İşlem türü ve kayıt anahtarı korundu; yeni satıştan önce geçmişi kontrol edin veya aynı işlemi sonuçlandırın.'
       : 'Satış türü seçiminize göre açıldı. Taslağınızdaki ürünler, normal satışın müşteri ve ödeme bilgileri korunuyor; hızlı satışta yalnızca nakit veya kartla tam ödeme alınır.'}</p>}

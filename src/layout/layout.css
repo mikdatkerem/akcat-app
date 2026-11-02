@@ -34,6 +34,8 @@
 .account-details { display: grid; gap: var(--space-1); min-width: 0; }
 .account-details strong { color: var(--color-text); overflow-wrap: anywhere; font-weight: var(--font-weight-medium); }
 .account-actions .ui-button { width: 100%; justify-content: flex-start; padding-inline: 0; }
+.account-actions .account-sign-out { color: var(--color-danger); }
+.account-actions .account-sign-out:hover:not(:disabled) { background: var(--color-danger-surface); }
 .mobile-drawer {
   position: fixed;
   inset-block: 0;

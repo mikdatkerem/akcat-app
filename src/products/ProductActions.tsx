@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { ActionMenu, DeleteConfirmation, Icon } from '../components/ui'
+import { ActionMenu, Button, DeleteConfirmation, Icon } from '../components/ui'
 import { ApiError } from '../services/apiClient'
 import type { Role } from '../services/auth'
 import { deleteProduct, updateProduct, type Product } from '../services/products'
 import { productHref } from './routing'
 
-export function ProductActions({ product, role, disabled = false, onChanged }: { disabled?: boolean; product: Product; role: Role; onChanged: (message: string, removed: boolean) => void }) {
+export function ProductActions({ product, role, disabled = false, showActivate = false, onChanged }: { disabled?: boolean; showActivate?: boolean; product: Product; role: Role; onChanged: (message: string, removed: boolean) => void }) {
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState<'status' | 'delete' | null>(null)
   const [error, setError] = useState('')
   const statusKey = useRef(crypto.randomUUID())
@@ -32,11 +32,12 @@ export function ProductActions({ product, role, disabled = false, onChanged }: {
     }
   }
   return <>
+    {showActivate && !product.is_active && role === 'admin' && <Button variant="secondary" disabled={disabled || !!busy} loading={busy === 'status'} loadingText="Aktifleştiriliyor…" onClick={() => { void run('status') }}>Aktif hale getir</Button>}
     <ActionMenu label={`${product.name} ürün işlemleri`} triggerClassName="product-more" disabled={disabled || !!busy}>
       <a role="menuitem" tabIndex={-1} href={productHref(product.id)}>Ürünü Görüntüle</a>
       {role === 'admin' && <>
         <a role="menuitem" tabIndex={-1} href={productHref(product.id) + '/duzenle'}>Düzenle</a>
-        <button role="menuitem" tabIndex={-1} type="button" onClick={() => { void run('status') }}>{product.is_active ? 'Pasife al' : 'Aktifleştir'}</button>
+        {(!showActivate || product.is_active) && <button role="menuitem" tabIndex={-1} type="button" onClick={() => { void run('status') }}>{product.is_active ? 'Pasife al' : 'Aktifleştir'}</button>}
         <button role="menuitem" tabIndex={-1} type="button" className="ui-action-menu__danger" onClick={() => { setError(''); setConfirming(true) }}><Icon name="trash" width="18" height="18" />Sil</button>
       </>}
     </ActionMenu>

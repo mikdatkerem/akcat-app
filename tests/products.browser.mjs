@@ -55,7 +55,7 @@ export async function verifyProducts(browserPage, metadataPath) {
     await field('Durum').selectOption(status)
     const response = page.waitForResponse(response => {
       const url = new URL(response.url())
-      return url.pathname === '/api/v1/products' && url.searchParams.get('status') === status && response.request().method() === 'GET'
+      return url.pathname === '/api/v1/products' && url.searchParams.get('status') === (status === 'all' ? 'active' : status) && response.request().method() === 'GET'
     })
     await page.getByRole('button', { name: 'Ara', exact: true }).click()
     assert.equal((await response).status(), 200)
@@ -132,7 +132,7 @@ export async function verifyProducts(browserPage, metadataPath) {
     await filter('inactive'); await page.locator('.product-name').waitFor()
     assert.equal(await page.locator('.product-name').innerText(), name)
     await filter('active')
-    await page.getByRole('heading', { name: 'Bu filtrelerde ürün bulunamadı', exact: true }).waitFor()
+    await page.getByRole('heading', { name: 'Aktif ürün bulunamadı', exact: true }).waitFor()
     await page.goto(meta.origin + '/#/urunler/' + id + '/duzenle')
     await title('Ürünü düzenle').waitFor()
     await page.getByRole('checkbox', { name: 'Aktif ürün', exact: true }).check()

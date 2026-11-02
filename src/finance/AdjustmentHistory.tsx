@@ -12,11 +12,13 @@ export function AdjustmentHistory({ filter }: { filter: Omit<AdjustmentFilter, '
   const [page, setPage] = useState(1), key = JSON.stringify(filter)
   const load = useCallback(() => listAdjustments({ ...filter, page, pageSize: 10 }), [filter, page])
   const { result, retry } = useResource(key + ':' + page, load)
+  if (!result) return <LoadingState label="Finansal düzeltmeler yükleniyor…" />
+  if (result.data?.pagination.total === 0) return null
   return <Card title="Ters kayıt ve harici iade geçmişi">
     <HelpDisclosure title="Düzeltme geçmişi hakkında">
       <p>İadeler normal tahsilat değildir. Kayıt tarihi adminin uygulama/teyit tarihidir; sistem para transferi yapmaz.</p>
     </HelpDisclosure>
-    {!result ? <LoadingState label="Finansal düzeltmeler yükleniyor…" /> : result.error ? <ErrorState title="Düzeltme geçmişi yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
+    {result.error ? <ErrorState title="Düzeltme geçmişi yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       {result.data.data.length === 0 ? <EmptyState title="Finansal düzeltme bulunamadı" description="Uygulanan tam ters kayıtlar ve teyitli harici iadeler burada gösterilir." />
         : <ul className="finance-history">{result.data.data.map(row => <li key={row.id}>
           <div className="finance-history-heading"><strong>{adjustmentLabels[row.kind]}</strong><span className="money">{formatMoney(row.amount_kurus)}</span></div>

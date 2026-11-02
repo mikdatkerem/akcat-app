@@ -1,5 +1,8 @@
 .finance-form, .finance-customer-panels { display: grid; gap: var(--space-5); }
 .finance-customer-panels { margin-top: var(--space-5); }
+.finance-account > .ui-card__header { align-items: center; }
+.finance-account-refresh { width: var(--touch-target); padding: 0; }
+.finance-actions.finance-account-actions { justify-content: flex-end; }
 .finance-form { max-width: 1000px; }
 .finance-success-area { margin-bottom: var(--space-5); }
 .finance-selected, .finance-actions, .finance-history-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); margin-top: var(--space-4); }
@@ -8,7 +11,13 @@
 .finance-summary dd, .finance-history dd, .finance-ledger dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
 .finance-debt-total { font-size: var(--font-size-amount); font-weight: var(--font-weight-semibold); text-align: left; white-space: normal; }
 .finance-link { display: inline-flex; align-items: center; min-height: var(--touch-target); color: var(--color-link); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.finance-history-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.finance-history-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+.finance-history-actions > span { flex-basis: 100%; text-align: right; color: var(--color-text-secondary); }
+.finance-payment-kind { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 190px; }
+.finance-payment-kind > .ui-badge { align-self: center; }
+.finance-payment-kind .finance-history-actions { flex: 0 0 auto; max-width: 190px; }
+.finance-payment-action { display: inline-flex; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); border-radius: var(--radius-pill); color: var(--color-primary-active); }
+.finance-payment-action:hover { background: var(--color-surface-muted); }
 .finance-open-sales, .finance-ledger, .finance-history { padding: 0; margin: var(--space-4) 0 0; list-style: none; }
 .finance-open-sales > li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-4); padding: var(--space-4) 0; border-top: var(--border-default); }
 .finance-open-sales > li > div { min-width: 0; }
@@ -101,14 +110,15 @@
 .operation-allocations li + li { margin-top: var(--space-3); padding-top: var(--space-3); border-top: var(--border-default); }
 .finance-day-nav { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-2); margin-block: var(--space-5); }
 .finance-day-nav > .ui-field { min-width: 150px; max-width: 230px; flex: 1; }
-.finance-day-nav--readonly { align-items: center; justify-content: center; }
+.finance-day-nav--readonly { display: grid; width: min(100%, 688px); margin-inline: auto; grid-template-columns: minmax(0,1fr) minmax(0,2.2fr) minmax(0,1fr) minmax(0,1fr); align-items: center; justify-content: center; }
+.finance-day-return--hidden { visibility: hidden; pointer-events: none; }
 .finance-day-label { flex: 0 1 360px; max-width: 360px; min-width: 0; text-align: center; font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
 .finance-day-label small { display: block; color: var(--color-primary); font-weight: normal; }
 @media (max-width: 479px) { .finance-day-nav { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .finance-day-nav > .ui-field { grid-row: 1; grid-column: 1 / -1; max-width: none; } .finance-day-nav .ui-button { padding-inline: var(--space-2); } }
 @media (max-width: 479px) {
-  .finance-day-nav--readonly { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr); }
+  .finance-day-nav--readonly { grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr); }
   .finance-day-nav--readonly > .ui-button { min-width: 0; white-space: normal; font-size: var(--font-size-help); }
-  .finance-day-nav--readonly > .ui-button:last-child:nth-child(4) { grid-column: 1 / -1; justify-self: center; }
+  .finance-day-nav--readonly .finance-day-label { font-size: var(--font-size-help); }
 }
 .receivable-selection { margin-bottom: var(--space-4); }
 .receivable-selection .sale-picker { margin-top: var(--space-2); }

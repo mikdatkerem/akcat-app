@@ -73,3 +73,6 @@
 .product-drag-preview * { pointer-events: none !important; }
 .product-drag-preview .product-table { margin: 0; }
 .product-drag-preview .product-table td { background: var(--color-surface); }
+
+.product-status-section { margin-top: var(--space-6); min-width: 0; }
+.product-status-section h2 { margin: 0 0 var(--space-4); font-size: var(--font-size-section); }

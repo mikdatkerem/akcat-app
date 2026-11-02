@@ -30,7 +30,7 @@ export function CustomerLedger({ id }: { id: string }) {
     {error && <p role="alert">{error}</p>}
     {!result ? <LoadingState label="Hareketler yükleniyor…" /> : result.error ? <ErrorState title="Finansal hareketler yüklenemedi" description={result.error} onRetry={retry} /> : result.data && <>
       {result.data.data.length === 0 ? <EmptyState title="Finansal hareket bulunamadı" description="Seçili filtrelerde kayıt yok." /> : <MovementTable data={result.data.data} />}
-      <Pagination page={result.data.pagination} label="Finansal hareket sayfaları" onPage={setPage} />
+      {result.data.pagination.totalPages > 1 && <Pagination page={result.data.pagination} label="Finansal hareket sayfaları" onPage={setPage} />}
     </>}
   </Card>
 }

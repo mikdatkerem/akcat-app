@@ -88,7 +88,11 @@ export function useProductOrder(list: ProductList | undefined, enabled: boolean,
   return { drag, busy, error, pending, locked: busy || !!pending, start, move, end,
     cancel: () => { suppressClick.current = true; cancel() },
     suppressClick: () => { const suppress = suppressClick.current; suppressClick.current = false; return suppress },
-    step: (id: string, direction: 'up' | 'down') => { void run(id, { direction }) },
+    step: (id: string, direction: 'up' | 'down') => {
+      const index = list?.data.findIndex(product => product.id === id) ?? -1
+      const target = index >= 0 ? list?.data[index + (direction === 'up' ? -1 : 1)] : undefined
+      if (target) void run(id, { target_id: target.id, placement: direction === 'up' ? 'before' : 'after' })
+    },
     retry: () => { if (pending) void run(pending.id, pending.move, pending) },
   }
 }

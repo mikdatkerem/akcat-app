@@ -1,7 +1,7 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Button, Card, EmptyState, ErrorState, Icon, Input, LoadingState, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
-import { getCustomer, listCustomers } from '../services/customers'
+import { getCustomer, listCustomers, type Customer } from '../services/customers'
 import { listSales, type SaleFilter } from '../services/sales'
 import type { Role } from '../services/auth'
 import { formatMoney } from '../utils/format'
@@ -18,7 +18,7 @@ import { FilterPanel } from '../finance/FilterPanel'
 
 const customers = (q: string, page: number) => listCustomers({ q, page, pageSize: 5, status: 'all' })
 const day = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' })
-export function SaleListPage({ filter, role }: { filter: SaleFilter; role: Role }) {
+export function SaleListPage({ filter, role, onCreate }: { filter: SaleFilter; role: Role; onCreate: (customer?: Customer) => void }) {
   const today = useIstanbulToday()
   const [choosing, setChoosing] = useState(false)
   const loadCustomer = useCallback(() => filter.customer_id ? getCustomer(filter.customer_id) : Promise.resolve(null), [filter.customer_id])
@@ -49,7 +49,7 @@ export function SaleListPage({ filter, role }: { filter: SaleFilter; role: Role 
   const list = result?.data
   return <>
     <PageHeader title="Satışlar" description={role === 'admin' ? 'Şirket satışları ve güncel ödeme durumları.' : 'Tüm çalışanların satışları ve güncel ödeme durumları.'}
-      actions={<a className="ui-button ui-button--primary" href="#/yeni-satis">Yeni satış</a>} />
+      actions={<Button disabled={!!filter.customer_id && !selected?.data} onClick={() => onCreate(selected?.data ?? undefined)}>Yeni satış</Button>} />
     <Card title="Müşteri Seçimi" className="receivable-selection">
       {filter.customer_id && !choosing ? <div className="receivable-selected">
         <div>{!selected ? <LoadingState label="Müşteri yükleniyor…" /> : selected.error ? <ErrorState title="Müşteri bilgileri alınamadı" description={selected.error} onRetry={retryCustomer} /> : selected.data && <><strong>{selected.data.name}</strong><p>{[selected.data.phone, selected.data.address?.slice(0, 140)].filter(Boolean).join(' · ')}</p></>}</div>

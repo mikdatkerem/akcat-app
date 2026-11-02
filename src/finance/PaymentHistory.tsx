@@ -1,6 +1,6 @@
 import { adjustmentLabels } from '../services/adjustments'
 import { useCallback, useState, type FormEvent } from 'react'
-import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Select } from '../components/ui'
+import { Badge, Button, EmptyState, ErrorState, Icon, Input, LoadingState, Select } from '../components/ui'
 import { listPayments, type PaymentFilter, type Payment } from '../services/finance'
 import type { PaymentMethod } from '../services/sales'
 import { useResource } from '../hooks/useResource'
@@ -19,8 +19,8 @@ import { useIstanbulToday } from './useIstanbulToday'
 
 function PaymentActions({ payment }: { payment: Payment }) {
   return <div className="finance-history-actions">
-    {payment.sale_id && <a className="finance-link" href={saleHref(payment.sale_id)}>Satış detayı</a>}
-    {payment.is_valid && <a className="finance-link" href={correctionHref('payment', payment.id)}>Düzeltme talebi</a>}
+    {payment.sale_id && <a className="finance-payment-action" href={saleHref(payment.sale_id)} aria-label="Satış detayı" title="Satış detayını görüntüle"><Icon name="info" /></a>}
+    {payment.is_valid && <a className="finance-payment-action" href={correctionHref('payment', payment.id)} aria-label="Düzeltme talebi" title="Tahsilat için düzeltme talebi oluştur"><Icon name="corrections" /></a>}
     {!payment.is_valid && <span>{payment.adjustment_kind ? adjustmentLabels[payment.adjustment_kind] : 'Ters kayıtla kapatılmış'}</span>}
   </div>
 }
@@ -77,7 +77,7 @@ export function PaymentHistory({ customerId, revision = 0 }: { customerId?: stri
             <td>{payment.collection_id ? <details><summary>Toplu tahsilat · {payment.allocations?.length} satış</summary>
               <small className="operation-reference">Tahsilat no: {payment.id}</small>
               <ul className="operation-allocations">{payment.allocations?.map(allocation => <li key={allocation.id}><small className="operation-reference">Satış no: {allocation.sale_id}</small><span className="money">{formatMoney(allocation.amount_kurus)}</span><PaymentActions payment={allocation} /></li>)}</ul>
-            </details> : <><Badge tone={payment.is_valid ? 'success' : 'neutral'}>{payment.adjustment_kind ? adjustmentLabels[payment.adjustment_kind] : payment.reversal_of_payment_id ? 'Ters kayıt' : payment.is_initial ? 'İlk ödeme' : 'Tahsilat'}</Badge><PaymentActions payment={payment} /></>}</td>
+            </details> : <div className="finance-payment-kind"><Badge tone={payment.is_valid ? 'success' : 'neutral'}>{payment.adjustment_kind ? adjustmentLabels[payment.adjustment_kind] : payment.reversal_of_payment_id ? 'Ters kayıt' : payment.is_initial ? 'İlk ödeme' : 'Tahsilat'}</Badge><PaymentActions payment={payment} /></div>}</td>
           </tr>)}</tbody></table></div>}
       {result.data.pagination.totalPages > 1 && <Pagination page={result.data.pagination} label="Tahsilat sayfaları" onPage={setPage} />}
     </>}

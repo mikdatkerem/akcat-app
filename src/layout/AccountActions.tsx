@@ -6,7 +6,7 @@ export function AccountActions({ user, busy, onSignOut, onNavigate }: { user: Us
     <div className="account-actions">
       <div className="account-details"><strong>{user.username}</strong><span>{user.role === 'admin' ? 'Yönetici' : 'Çalışan'}</span></div>
       <a className="ui-button ui-button--ghost" href="#/hesabim" onClick={onNavigate}>Hesabım</a>
-      <Button variant="ghost" onClick={onSignOut} loading={busy} loadingText="Çıkış yapılıyor…">Çıkış Yap</Button>
+      <Button variant="ghost" className="account-sign-out" onClick={onSignOut} loading={busy} loadingText="Çıkış yapılıyor…">Çıkış Yap</Button>
     </div>
   )
 }
