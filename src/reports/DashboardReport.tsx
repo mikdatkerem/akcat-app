@@ -17,7 +17,7 @@ export function DashboardReport() {
       <div className="report-range"><p>Rapor zamanı: <time dateTime={result.data.range.generated_at}>{saleDate(result.data.range.generated_at)}</time></p></div>
       <Metrics values={[
         { key: 'today_sales', label: 'Bugünkü satış toplamı', value: result.data.sales.sales_total_kurus }, { key: 'today_payments', label: 'Bugünkü tahsilat toplamı', value: result.data.payments.payments_total_kurus },
-        { key: 'today_cash', label: 'Bugünkü Nakit Tahsilat', value: result.data.payments.cash_kurus }, { key: 'current_debt', label: 'Güncel açık müşteri borcu', value: result.data.receivables.total_debt_kurus },
+        { key: 'current_debt', label: 'Güncel açık müşteri borcu', value: result.data.receivables.total_debt_kurus },
         { key: 'today_count', label: 'Bugünkü satış adedi', value: result.data.sales.sales_count, money: false },
       ]} />
       <div className="report-section-heading"><h2>Bugünkü son işlemler</h2><a className="text-link" href="#/raporlar">Raporları görüntüle</a></div>

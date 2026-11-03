@@ -43,7 +43,7 @@ function getSnapshot(): PageId | 'not-found' {
   if (hash === '#/yeni-satis' || /^#\/satislar\/(?:yeni|[a-f0-9-]{36})$/i.test(hash)) return 'sales'
   if (hash === '#/tahsilatlar/yeni') return 'payments'
   if (/^#\/duzeltmeler\/(?:yeni|[a-f0-9-]{36})$/i.test(hash)) return 'corrections'
-  if (/^#\/raporlar\/(?:tahsilatlar|satislar|borclar|calisanlar)$/i.test(hash)) return 'reports'
+  if (/^#\/raporlar\/(?:tahsilatlar|satislar|borclar|calisanlar|overview|sales|payments|receivables|customers|employees|products|vouchers|corrections|comparison)$/i.test(hash)) return 'reports'
   if (/^#\/calisanlar\/(?:yeni|[a-f0-9-]{36}(?:\/(?:duzenle|parola))?)$/i.test(hash)) return 'users'
   return [...navigation, menuItem].find(item => item.href === hash)?.id ?? 'not-found'
 }

@@ -29,6 +29,11 @@ export function onUnauthorized(listener: () => void) {
 
 function httpError(status: number, code: string, method: string) {
   const operationErrors: Record<string, string> = {
+    REPORT_EXPORT_LIMIT: 'PDF en fazla 5.000 satır içerebilir. Filtreleri daraltın.',
+    REPORT_CHANGED: 'Veriler değişti. Raporu yenileyip PDF indirmeyi tekrar deneyin.',
+    INVALID_REPORT_INPUT: 'Dönemi ve filtreleri kontrol edin. En fazla üç yıllık tarih aralığı seçin.',
+    REPORT_AMOUNT_INVALID: 'Rapor tutarı güvenli hesaplama sınırını aşıyor. Yönetici kontrolü gerekli.',
+
     INVALID_COLLECTION_INPUT: 'Müşteriyi, pozitif tahsilat tutarını ve ödeme yöntemini kontrol edin.',
     CUSTOMER_INACTIVE: 'Müşteri pasif. Toplu tahsilat için yöneticiyle görüşün.',
     NO_OPEN_DEBT: 'Müşterinin açık borcu yok.',
