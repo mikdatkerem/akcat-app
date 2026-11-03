@@ -28,11 +28,12 @@ function Trend({title,rows,series,currency=false}:{title:string;rows:AnalysisRow
  {series.map((s,i)=><Line key={s.key} type="linear" name={s.label} dataKey={s.key} stroke={colors[i]} strokeWidth={2} dot={{r:2}} activeDot={{r:5}} strokeDasharray={i===1?'5 3':undefined} isAnimationActive={false}/>)}
  </LineChart></ResponsiveContainer></Frame>
 }
-export default function ReportCharts({report:r,onIntervalChange,busy=false}:{report:Analysis;onIntervalChange?:(value:string)=>void;busy?:boolean}){
+export default function ReportCharts({report:r,onIntervalChange,selectedPeriod,busy=false}:{report:Analysis;onIntervalChange?:(value:string)=>void;selectedPeriod?:string;busy?:boolean}){
  if(r.category==='comparison')return <ComparisonChart report={r}/>
- const interval={day:'Günlük',week:'Haftalık',month:'Aylık'}[r.trend_interval]
+ const period=selectedPeriod??'day'
+ const interval:Record<string,string>={day:'Günlük',week:'Haftalık',month:'Aylık',year:'Yıllık'}
  return <>
- <div className="analysis-chart-toolbar"><p className="analysis-chart-period">{dateLabel(r.range.start_date)} — {dateLabel(r.range.end_date)} · {interval}</p>{onIntervalChange&&<Select label="Grafik tarih aralığı" disabled={busy} value={r.trend_interval} onChange={e=>onIntervalChange(e.target.value)}><option value="day">Günlük</option><option value="week">Haftalık</option><option value="month">Aylık</option></Select>}</div>
+ <div className="analysis-chart-toolbar"><p className="analysis-chart-period">{dateLabel(r.range.start_date)} — {dateLabel(r.range.end_date)} · {interval[period]}</p>{onIntervalChange&&<Select label="Grafik tarih aralığı" disabled={busy} value={period} onChange={e=>onIntervalChange(e.target.value)}><option value="day">Günlük</option><option value="week">Haftalık</option><option value="month">Aylık</option><option value="year">Yıllık</option></Select>}</div>
  <div className="analysis-charts">
  <Trend title="Satış Tutarı" rows={r.trend} currency series={[{key:'sales_kurus',label:'Geçerli satış tutarı'}]}/>
  <Trend title="Tahsilat" rows={r.trend} currency series={[{key:'receipts_kurus',label:'Toplam geçerli tahsilat'},{key:'cash_kurus',label:'Nakit'},{key:'card_kurus',label:'Kart'},{key:'bank_kurus',label:'Banka'}]}/>
