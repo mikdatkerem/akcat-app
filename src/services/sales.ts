@@ -1,8 +1,8 @@
 import { ApiError, apiRequest } from './apiClient'
 
 export type PaymentMethod = 'cash' | 'card' | 'bank'
-export type SaleInput = { sale_type?: 'normal' | 'walk_in'; walk_in_customer_name?: string | null; customer_id: string | null; items: { product_id: string; quantity: number; unit_price_kurus?: number; expected_list_price_kurus?: number | null }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
-export type SaleSummary = { id: string; sale_type: 'normal' | 'walk_in'; walk_in_customer_name: string | null; customer_id: string | null; customer_name: string; created_by: string; created_by_username: string;
+export type SaleInput = { settlement?: 'money' | 'voucher'; sale_type?: 'normal' | 'walk_in'; walk_in_customer_name?: string | null; customer_id: string | null; items: { product_id: string; quantity: number; unit_price_kurus?: number; expected_list_price_kurus?: number | null }[]; payment: { amount_kurus: number; method: PaymentMethod | null } }
+export type SaleSummary = { voucher_operation: 'none' | 'purchase' | 'redemption'; voucher_quantity: number; id: string; sale_type: 'normal' | 'walk_in'; walk_in_customer_name: string | null; customer_id: string | null; customer_name: string; created_by: string; created_by_username: string;
   status: 'completed' | 'cancelled'; total_kurus: number; paid_kurus: number; remaining_kurus: number;
   payment_status: 'paid' | 'partial' | 'credit'; created_at: string; updated_at: string }
 export type Sale = SaleSummary & { cancellation_eligibility: { allowed: boolean; expires_at: string | null; explanation: string };
@@ -18,6 +18,7 @@ const record = (value: unknown): Record<string, unknown> => { if (!value || type
 const date = (value: unknown) => typeof value === 'string' && Number.isFinite(Date.parse(value))
 function summary(value: unknown): SaleSummary {
   const row = record(value)
+  if (!['none','purchase','redemption'].includes(String(row.voucher_operation)) || !money(row.voucher_quantity)) throw invalid()
   if (!['id', 'customer_name', 'created_by', 'created_by_username'].every(key => typeof row[key] === 'string')
     || !['completed', 'cancelled'].includes(String(row.status)) || !date(row.created_at) || !date(row.updated_at)
     || !money(row.total_kurus) || !money(row.paid_kurus) || !money(row.remaining_kurus) || row.paid_kurus > row.total_kurus

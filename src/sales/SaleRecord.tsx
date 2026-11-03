@@ -14,6 +14,7 @@ import { correctionHref } from '../services/corrections'
 import '../corrections/corrections.css'
 export function PaymentBadge({ sale }: { sale: SaleSummary }) {
   if (sale.status === 'cancelled') return <Badge tone="neutral">İptal edildi</Badge>
+  if (sale.voucher_operation === 'redemption') return <Badge tone="success">Su Fişi ile Ödendi</Badge>
   return <Badge tone={sale.payment_status === 'paid' ? 'success' : sale.payment_status === 'partial' ? 'warning' : 'info'}>
     {sale.payment_status === 'paid' ? 'Ödendi' : sale.payment_status === 'partial' ? 'Kısmi ödeme' : 'Veresiye'}
   </Badge>
@@ -31,14 +32,15 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
     <div className="sale-record">
       <Card title="Müşteri ve satış" accessory={<PaymentBadge sale={sale} />}>
         <dl className="sale-details">
-          <div><dt>Satış türü</dt><dd>{sale.sale_type === 'walk_in' ? 'Hızlı Satış' : 'Normal Satış'}</dd></div><div><dt>Müşteri</dt><dd>{sale.customer?.name ?? sale.customer_name}</dd></div>{sale.customer && <><div><dt>Telefon</dt><dd>{sale.customer?.phone || 'Belirtilmedi'}</dd></div>
+          <div><dt>Satış türü</dt><dd>{sale.voucher_operation === 'purchase' ? 'Fiş Satışı' : sale.voucher_operation === 'redemption' ? 'Fişle Teslimat' : sale.sale_type === 'walk_in' ? 'Hızlı Satış' : 'Normal Satış'}</dd></div><div><dt>Müşteri</dt><dd>{sale.customer?.name ?? sale.customer_name}</dd></div>{sale.customer && <><div><dt>Telefon</dt><dd>{sale.customer?.phone || 'Belirtilmedi'}</dd></div>
           <div><dt>Adres</dt><dd>{sale.customer?.address || 'Belirtilmedi'}<DirectionsLink address={sale.customer?.address ?? ''} /></dd></div></>}<div><dt>Satış durumu</dt><dd>{sale.status === 'completed' ? 'Tamamlandı (teslim edildi)' : 'İptal edildi'}</dd></div>
+          {sale.voucher_operation !== 'none' && <><div><dt>Su fişi adedi</dt><dd>{sale.voucher_quantity}</dd></div><div><dt>Fiş işlemi</dt><dd>{sale.voucher_operation === 'redemption' ? 'Ön ödemeli fiş kullanımı; yeni tahsilat ve borç yok.' : 'Peşin fiş satışı'}</dd></div></>}
           <div><dt>İşlemi yapan</dt><dd>{sale.created_by_username}</dd></div><div><dt>Oluşturulma</dt><dd><time dateTime={sale.created_at}>{saleDate(sale.created_at)}</time></dd></div>
         </dl>
       </Card>
       <Card title="Satılan ürünler">
         <ul className="sale-snapshot-items">{sale.items.map(item => {
-          const customPrice = item.list_unit_price_kurus !== null && item.list_unit_price_kurus !== item.unit_price_kurus
+          const customPrice = sale.voucher_operation !== 'redemption' && item.list_unit_price_kurus !== null && item.list_unit_price_kurus !== item.unit_price_kurus
           const difference = item.list_unit_price_kurus === null ? null : BigInt(item.unit_price_kurus) - BigInt(item.list_unit_price_kurus)
           const totalDifference = difference === null ? null : difference * BigInt(item.quantity)
           return <li key={item.id}>
@@ -46,7 +48,7 @@ export function SaleRecord({ id, receipt, actor }: { id: string; receipt?: Sale;
               {customPrice && <Badge tone="info">Özel fiyat</Badge>}</div>
               <small>Liste fiyatı: {item.list_unit_price_kurus === null ? 'Katalog fiyatı kaydedilmemiş.' : customPrice
                 ? <del className="money">{formatMoney(item.list_unit_price_kurus)}</del> : <span className="money">{formatMoney(item.list_unit_price_kurus)}</span>}</small>
-              <small>Satış fiyatı: <span className="money">{formatMoney(item.unit_price_kurus)}</span></small>
+              <small>{sale.voucher_operation === 'redemption' ? 'Fişle karşılandı; yeni tahsilat: ' : 'Satış fiyatı: '}<span className="money">{formatMoney(item.unit_price_kurus)}</span></small>
               {customPrice && difference !== null && totalDifference !== null && <>
                 <small>Birim fiyat farkı: <span className="money">{difference > 0n ? '+' : ''}{formatMoney(difference)}</span></small>
                 <small>Toplam fiyat farkı: <span className="money">{totalDifference > 0n ? '+' : ''}{formatMoney(totalDifference)}</span></small>

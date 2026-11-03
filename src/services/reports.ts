@@ -5,7 +5,7 @@ import { readPayment, type Payment, type PageInfo } from './finance'
 export type Period = 'today' | 'yesterday' | 'last7' | 'month' | 'custom'
 export type ReportFilter = { period: Period; from?: string; to?: string; q?: string; created_by?: string; view?: 'sales' | 'cancelled' | 'items' | 'products'; page: number; pageSize: number }
 export type ReportRange = { period: Period; from: string; to: string; start_date: string; end_date: string; time_zone: 'Europe/Istanbul'; generated_at: string }
-export type SalesTotals = { sales_total_kurus: number; sales_count: number; cancelled_total_kurus: number; cancelled_count: number }
+export type SalesTotals = { voucher_sold_quantity?: number; voucher_used_quantity?: number; sales_total_kurus: number; sales_count: number; cancelled_total_kurus: number; cancelled_count: number }
 export type PaymentTotals = { payments_total_kurus: number; payments_count: number; cash_kurus: number; card_kurus: number; bank_kurus: number }
 export type DebtTotals = { total_debt_kurus: number; debtor_count: number; open_sales_count: number; sales_total_kurus: number; paid_kurus: number }
 export type Recent = { id: string; type: 'sale' | 'payment' | 'cancellation' | 'record_reversal' | 'external_refund'; sale_id: string | null; customer_id: string | null; customer_name: string;
@@ -22,7 +22,7 @@ const object = (value: unknown): Record<string, unknown> => { if (!value || type
 const money = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 const date = (value: unknown) => typeof value === 'string' && Number.isFinite(Date.parse(value))
 function numbers(value: unknown, fields: readonly string[]) { const row = object(value); if (!fields.every(field => money(row[field]))) throw invalid(); return row }
-function salesTotals(value: unknown) { return numbers(value, ['sales_total_kurus', 'sales_count', 'cancelled_total_kurus', 'cancelled_count']) as SalesTotals }
+function salesTotals(value: unknown) { const row = numbers(value, ['sales_total_kurus', 'sales_count', 'cancelled_total_kurus', 'cancelled_count']); for (const key of ['voucher_sold_quantity','voucher_used_quantity']) if (row[key] !== undefined && !money(row[key])) throw invalid(); return row as SalesTotals }
 function paymentTotals(value: unknown) {
   const row = numbers(value, ['payments_total_kurus', 'payments_count', 'cash_kurus', 'card_kurus', 'bank_kurus']) as PaymentTotals
   if (BigInt(row.payments_total_kurus) !== BigInt(row.cash_kurus) + BigInt(row.card_kurus) + BigInt(row.bank_kurus)) throw invalid()

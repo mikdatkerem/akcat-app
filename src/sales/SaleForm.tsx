@@ -1,6 +1,8 @@
+import { getVouchers } from '../services/vouchers'
+import { useResource } from '../hooks/useResource'
 import { rememberKey } from '../finance/pendingKey'
 import { RecoveryNotice } from '../finance/RecoveryNotice'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Badge, Button, Card, ErrorState, Icon, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { listCustomers, type Customer } from '../services/customers'
@@ -22,7 +24,11 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
   // Never reinterpret a request whose result is unknown. Unsubmitted fields survive mode changes.
   const [saleType, setSaleType] = useState(draft.pending || draft.recovered ? draft.saleType : requestedMode ?? draft.saleType), [walkInName, setWalkInName] = useState(draft.walkInName), [quickMethod, setQuickMethod] = useState(draft.quickMethod)
   const quick = saleType === 'walk_in'
+  const [settlement, setSettlement] = useState<'money' | 'voucher'>(draft.pending?.settlement ?? draft.settlement)
+  const voucherMode = !quick && settlement === 'voucher'
   const [customer, setCustomer] = useState(draft.pending || draft.recovered ? draft.customer : initialCustomer ?? draft.customer)
+  const loadVouchers = useCallback(() => customer ? getVouchers(customer.id) : Promise.resolve(null), [customer])
+  const { result: voucherResult, retry: refreshVouchers } = useResource(customer?.id ?? '', loadVouchers)
   const [lines, setLines] = useState(() => draft.lines.map(line => ({ ...line,
     unitPrice: line.unitPrice ?? catalogInput(line.product.current_price_kurus) })))
   const [payment, setPayment] = useState(draft.payment)
@@ -35,11 +41,14 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
   const sending = useRef(false), mounted = useRef(false), key = useRef(draft.key)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   useEffect(() => { onBusyChange?.(busy) }, [busy, onBusyChange])
-  useEffect(() => { updateSaleDraft(actor, draft.key, { saleType, walkInName, quickMethod, customer, lines, payment, method, pending }) }, [saleType, walkInName, quickMethod, actor, draft.key, customer, lines, payment, method, pending])
+  useEffect(() => { updateSaleDraft(actor, draft.key, { settlement, saleType, walkInName, quickMethod, customer, lines, payment, method, pending }) }, [settlement, saleType, walkInName, quickMethod, actor, draft.key, customer, lines, payment, method, pending])
+  const voucherPurchase = lines.some(line => line.product.product_type === 'water_voucher')
+  let voucherCount = 0
+  try { voucherCount = sumLines(lines.map(line => ({ price: 1, quantity: line.quantity }))) } catch { /* Form validation below. */ }
   let total: number | undefined, paid: number | undefined, calculationError = ''
-  try { total = sumLines(lines.map(line => ({ price: unitPriceValue(line.unitPrice), quantity: line.quantity }))) }
+  try { total = sumLines(lines.map(line => ({ price: voucherMode ? 0 : unitPriceValue(line.unitPrice), quantity: line.quantity }))) }
   catch (cause) { calculationError = cause instanceof Error ? cause.message : 'Miktarları ve birim fiyatları kontrol edin.' }
-  try { paid = quick ? total : parsePriceToKurus(payment) } catch { /* Shown as validation on submit. */ }
+  try { paid = voucherMode ? 0 : quick || voucherPurchase ? total : parsePriceToKurus(payment) } catch { /* Shown as validation on submit. */ }
   const locked = busy || !!pending
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -52,6 +61,10 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
       else if (calculationError || total === undefined) errors.items = calculationError || 'Ürün miktarlarını ve birim fiyatları kontrol edin.'
       if (paid === undefined) errors.payment = 'Geçerli bir ödeme tutarı girin; en fazla iki ondalık basamak kullanın.'
       else if (total !== undefined && paid > total) errors.payment = 'Alınan ödeme satış toplamını aşamaz.'
+      if (voucherMode && (!voucherResult?.data || voucherResult.error)) errors.payment = 'Güncel fiş bakiyesi alınmadan işlem yapılamaz.'
+      if (voucherMode && voucherResult?.data && voucherCount > voucherResult.data.available_quantity) errors.payment = `Yetersiz su fişi bakiyesi. Mevcut: ${voucherResult.data.available_quantity}, Gerekli: ${voucherCount}.`
+      if (voucherMode && lines.some(line => line.product.product_type !== 'damacana')) errors.items = 'Su fişi yalnızca damacana kalemleri için kullanılabilir. Diğer ürünleri ayrı satışta kaydedin.'
+      if (voucherPurchase && (quick || voucherMode || lines.some(line => line.product.product_type !== 'water_voucher') || !['cash','card'].includes(method))) errors.payment = 'Fiş satışı kayıtlı müşteriye, ayrı işlemde, tam nakit veya kart ödemesiyle yapılır.'
       if (paid !== undefined && paid > 0 && !(quick ? quickMethod : method)) errors.method = 'Ödeme yöntemini seçin.'
       setInvalid(errors)
       if (Object.keys(errors).length || (!quick && !customer) || total === undefined || paid === undefined) {
@@ -59,10 +72,10 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
         requestAnimationFrame(() => { if (mounted.current) form.querySelector<HTMLElement>('[data-sale-validation], [aria-invalid="true"]')?.focus() })
         return
       }
-      body = { ...(quick ? { sale_type: 'walk_in' as const, walk_in_customer_name: walkInName.trim().normalize('NFC') || null } : {}), customer_id: quick ? null : customer!.id, items: lines.map(line => {
-        const price = unitPriceValue(line.unitPrice)
+      body = { settlement: voucherMode ? 'voucher' : 'money', ...(quick ? { sale_type: 'walk_in' as const, walk_in_customer_name: walkInName.trim().normalize('NFC') || null } : {}), customer_id: quick ? null : customer!.id, items: lines.map(line => {
+        const price = voucherMode ? undefined : unitPriceValue(line.unitPrice)
         return { product_id: line.product.id, quantity: quantityValue(line.quantity),
-          expected_list_price_kurus: line.product.current_price_kurus, ...(price !== line.product.current_price_kurus ? { unit_price_kurus: price } : {}) }
+          expected_list_price_kurus: line.product.current_price_kurus, ...(price !== undefined && price !== line.product.current_price_kurus ? { unit_price_kurus: price } : {}) }
       }),
         payment: { amount_kurus: paid, method: paid > 0 ? (quick ? quickMethod : method) as PaymentMethod : null } }
     }
@@ -75,6 +88,7 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
     } catch (cause) {
       if (mounted.current) {
         setError(cause instanceof ApiError ? cause.message : 'Satış sonucu doğrulanamadı. Aynı satışı tekrar deneyin.')
+        if (cause instanceof ApiError && cause.code === 'VOUCHER_BALANCE_CONFLICT') { refreshVouchers(); updateSaleDraft(actor, draft.key, { pending: null }); setPending(null) }
         if (cause instanceof ApiError && cause.code === 'PRICE_CHANGED') {
           const detail = cause.details as { products?: unknown } | undefined
           if (Array.isArray(detail?.products) && detail.products.every(row => row && typeof row.product_id === 'string' && typeof row.name === 'string' && (row.expected_list_price_kurus === null || Number.isSafeInteger(row.expected_list_price_kurus)) && (row.current_price_kurus === null || (Number.isSafeInteger(row.current_price_kurus) && row.current_price_kurus >= 0)))) setChangedPrices(detail.products)
@@ -100,27 +114,28 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
       </div><p>Ürünler korunur. Normal satışın müşteri ve ödeme bilgileri kendi bölümünde saklanır.</p></fieldset>
       {quick ? <Card title="Tezgâh satışı"><Input label="Müşteri Adı (İsteğe Bağlı)" value={walkInName} maxLength={160} disabled={locked}
         placeholder="Örn. Ahmet Yılmaz" hint="Bu isim yalnızca satış kaydında görünür. Müşteri oluşturulmaz." onChange={event => setWalkInName(event.target.value)} /></Card> : <Card title="Müşteri">
-        {customer ? <div className="sale-selected"><div><strong>{customer.name}</strong><p>{customer.address}</p></div>
+        {customer ? <div className="sale-selected"><div><strong>{customer.name}</strong><p>{customer.address}</p>
+            {!voucherResult ? <p role="status">Su fişi bakiyesi yükleniyor…</p> : voucherResult.error ? <ErrorState title="Fiş bakiyesi alınamadı" description={voucherResult.error} onRetry={refreshVouchers} /> : voucherResult.data && <p><strong>Kullanılabilir Su Fişi: {voucherResult.data.available_quantity} adet</strong></p>}</div>
           <Button variant="ghost" disabled={locked} onClick={() => setCustomer(null)}>Müşteriyi değiştir</Button></div>
           : <RecordPicker label="Müşteri ara" load={customers} onSelect={value => { setCustomer(value); setInvalid(current => ({ ...current, customer: undefined })) }} describe={value => value.phone || value.address} disabled={locked} />}
         {invalid.customer && <p className="sale-validation" role="alert" tabIndex={-1} data-sale-validation>{invalid.customer}</p>}
       </Card>}
       <Card title="Ürünler">
         <RecordPicker label="Aktif ürün ara" load={products} onSelect={product => { setLines(current => [...current, { product, quantity: '1', unitPrice: catalogInput(product.current_price_kurus) }]); setInvalid(current => ({ ...current, items: undefined })) }}
-          describe={value => catalogMoney(value.current_price_kurus)} disabled={locked || lines.length >= 50} excluded={lines.map(line => line.product.id)} />
+          describe={value => `${catalogMoney(value.current_price_kurus)}${value.product_type === 'water_voucher' ? ' · Su Fişi' : value.product_type === 'damacana' ? ' · Fişle ödenebilir' : ''}`} disabled={locked || lines.length >= 50} excluded={lines.map(line => line.product.id)} />
         {lines.length > 0 && <ul className="sale-lines">{lines.map((line, index) => {
           let amount: number | undefined, price: number | undefined, priceError: string | undefined, message: string | undefined
-          try { price = unitPriceValue(line.unitPrice) } catch (cause) { priceError = cause instanceof Error ? cause.message : 'Geçersiz birim fiyat.' }
+          try { price = voucherMode ? 0 : unitPriceValue(line.unitPrice) } catch (cause) { priceError = cause instanceof Error ? cause.message : 'Geçersiz birim fiyat.' }
           try { quantityValue(line.quantity); if (price !== undefined) amount = lineTotal(price, line.quantity) }
           catch (cause) { message = cause instanceof Error ? cause.message : 'Geçersiz miktar.' }
-          const customPrice = line.product.current_price_kurus !== null && price !== undefined && price !== line.product.current_price_kurus
+          const customPrice = !voucherMode && line.product.current_price_kurus !== null && price !== undefined && price !== line.product.current_price_kurus
           return <li key={line.product.id}>
             <div className="sale-line-name"><strong>{line.product.name}</strong>
               <small>Liste fiyatı: <span className="money">{catalogMoney(line.product.current_price_kurus)}</span></small>
             </div>
             <div className="sale-line-price">
               <Input label="Birim fiyat (₺)" aria-label={`${line.product.name} birim fiyatı (₺)`} type="text" inputMode="decimal" name={`unit-price-${index}`}
-                value={line.unitPrice} maxLength={32} required error={priceError} disabled={locked}
+                value={line.unitPrice} maxLength={32} required={!voucherMode} error={priceError} disabled={locked || voucherMode}
                 onChange={event => { setLines(current => current.map((value, at) => at === index ? { ...value, unitPrice: event.target.value } : value)); setInvalid(current => ({ ...current, items: undefined })) }} />
               {customPrice && <div className="sale-price-indicator"><Badge tone="info">Özel fiyat</Badge>
                 <span className="sale-price-comparison money"><span className="visually-hidden">Liste fiyatı </span><del>{catalogMoney(line.product.current_price_kurus)}</del>
@@ -139,18 +154,22 @@ export function SaleForm({ actor, requestedMode, initialCustomer, onSaved, embed
       </Card>
       <Card title="Ödeme">
         <div className="sale-payment-fields">
-          {!quick && <Input label="Alınan ödeme (₺)" name="payment" type="text" inputMode="decimal" value={payment} maxLength={32} required disabled={locked} error={invalid.payment}
+          {!quick && !voucherMode && !voucherPurchase && <Input label="Alınan ödeme (₺)" name="payment" type="text" inputMode="decimal" value={payment} maxLength={32} required disabled={locked} error={invalid.payment}
             hint="Ödeme alınmadıysa 0 girin." onChange={event => { setPayment(event.target.value); setInvalid(current => ({ ...current, payment: undefined })) }} />}
-          {(quick || (paid !== undefined && paid > 0)) && <Select label="Ödeme yöntemi" value={quick ? quickMethod : method} required disabled={locked} error={invalid.method} onChange={event => { if (quick) setQuickMethod(event.target.value as 'cash' | 'card'); else setMethod(event.target.value as PaymentMethod | ''); setInvalid(current => ({ ...current, method: undefined })) }}>
-            {!quick && <option value="">Seçin</option>}<option value="cash">Nakit</option><option value="card">Kart</option>{!quick && <option value="bank">Banka</option>}
+          {<Select label="Ödeme yöntemi" value={quick ? quickMethod : voucherMode ? "voucher" : method} required disabled={locked} error={invalid.method} onChange={event => { if (quick) setQuickMethod(event.target.value as 'cash' | 'card'); else { setSettlement(event.target.value === 'voucher' ? 'voucher' : 'money'); if (event.target.value !== 'voucher') setMethod(event.target.value as PaymentMethod | '') }; setInvalid(current => ({ ...current, method: undefined })) }}>
+            {!quick && <option value="">Seçin</option>}<option value="cash">Nakit</option><option value="card">Kart</option>{!quick && !voucherPurchase && <><option value="bank">Banka</option><option value="voucher">Su Fişi</option></>}
           </Select>}
         </div>
+        {voucherMode && <p className="sale-help" role="status">Kullanılabilir Fiş: {voucherResult?.data?.available_quantity ?? '—'} · Gerekli Fiş: {voucherCount} · İşlem Sonrası Fiş: {voucherResult?.data ? voucherCount <= voucherResult.data.available_quantity ? voucherResult.data.available_quantity - voucherCount : 'Yetersiz bakiye' : '—'}. Yeni tahsilat: 0,00 ₺. Bu işlemde veresiye oluşmaz.</p>}
+        {(voucherMode || voucherPurchase) && invalid.payment && <p className="sale-validation" role="alert" tabIndex={-1} data-sale-validation>{invalid.payment}</p>}
+        {voucherMode && voucherResult?.data && voucherCount > voucherResult.data.available_quantity && <p className="sale-validation" role="alert">Yetersiz su fişi bakiyesi. Mevcut: {voucherResult.data.available_quantity}, Gerekli: {voucherCount}. Kalan damacanaları ayrı normal satışla kaydedebilirsiniz.</p>}
+        {voucherPurchase && <p className="sale-help">Fiş satışı peşindir; toplam tutarın tamamı nakit veya kartla tahsil edilir.</p>}
         <dl className="sale-totals" aria-live="polite">
           <div><dt>Genel toplam</dt><dd className="money">{total === undefined ? '—' : formatMoney(total)}</dd></div>
           <div><dt>Alınan ödeme</dt><dd className="money">{paid === undefined ? '—' : formatMoney(paid)}</dd></div>
           <div><dt>Kalan borç</dt><dd className="money">{total === undefined || paid === undefined || paid > total ? '—' : formatMoney(total - paid)}</dd></div>
         </dl>
-        {lines.length > 0 && paid === 0 && total !== undefined && total > 0 && <p className="sale-credit">Ödeme alınmadı. Satışın tamamı veresiye olarak kaydedilecek.</p>}
+        {!voucherMode && lines.length > 0 && paid === 0 && total !== undefined && total > 0 && <p className="sale-credit">Ödeme alınmadı. Satışın tamamı veresiye olarak kaydedilecek.</p>}
         {quick && <p className="sale-credit">Tam ödeme alınır; veresiye veya sonradan tahsilat oluşturulmaz.</p>}
         <p className="sale-help">Özel fiyat yalnızca bu satışa uygulanır. Liste fiyatı değişirse yeniden onayınız istenir; toplamlar sunucuda doğrulanır.</p>
       </Card>

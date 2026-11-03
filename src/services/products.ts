@@ -1,7 +1,7 @@
 import { ApiError, apiRequest } from './apiClient'
 
-export type Product = { id: string; name: string; current_price_kurus: number | null; sort_order: number; is_active: boolean; created_at: string; updated_at: string; version: number }
-export type ProductInput = Pick<Product, 'name' | 'current_price_kurus' | 'is_active'>
+export type Product = { product_type: 'standard' | 'damacana' | 'water_voucher'; id: string; name: string; current_price_kurus: number | null; sort_order: number; is_active: boolean; created_at: string; updated_at: string; version: number }
+export type ProductInput = Pick<Product, 'name' | 'current_price_kurus' | 'is_active' | 'product_type'>
 export type ProductPatch = Partial<ProductInput>
 export type ProductFilter = { q: string; status: 'all' | 'active' | 'inactive'; page: number; pageSize: number }
 export type ProductList = { order_version: number; data: Product[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }
@@ -16,7 +16,8 @@ function readProduct(value: unknown): Product {
     || typeof data.version !== 'number' || !Number.isSafeInteger(data.version) || data.version < 1
     || typeof data.is_active !== 'boolean' || typeof data.created_at !== 'string' || !Number.isFinite(Date.parse(data.created_at))
     || typeof data.updated_at !== 'string' || !Number.isFinite(Date.parse(data.updated_at))) throw invalid()
-  return { sort_order: Number(data.sort_order), id: data.id, name: data.name, current_price_kurus: data.current_price_kurus, is_active: data.is_active,
+  if (!['standard','damacana','water_voucher'].includes(String(data.product_type))) throw invalid()
+  return { product_type: data.product_type as Product['product_type'], sort_order: Number(data.sort_order), id: data.id, name: data.name, current_price_kurus: data.current_price_kurus, is_active: data.is_active,
     created_at: data.created_at, updated_at: data.updated_at, version: data.version }
 }
 function readSingle(value: unknown) {

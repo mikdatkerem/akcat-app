@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Button, Card, ErrorState, Input } from '../components/ui'
+import { Button, Card, ErrorState, Input, Select } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
 import { ApiError } from '../services/apiClient'
 import { getProduct, createProduct, updateProduct, type Product, type ProductPatch } from '../services/products'
@@ -16,6 +16,7 @@ export function ProductForm({ product: initialRecord, onSaved }: { product?: Pro
 
   const [name, setName] = useState(product?.name ?? '')
   const [price, setPrice] = useState(product ? catalogInput(product.current_price_kurus) : '')
+  const [productType, setProductType] = useState<Product['product_type']>(product?.product_type ?? 'standard')
   const [active, setActive] = useState(product?.is_active ?? true)
   const [errors, setErrors] = useState<{ name?: string; price?: string }>({})
   const [error, setError] = useState('')
@@ -31,6 +32,7 @@ export function ProductForm({ product: initialRecord, onSaved }: { product?: Pro
   if (product) {
     if (normalizedName !== product.name) patch.name = normalizedName
     if (amount !== product.current_price_kurus) patch.current_price_kurus = amount
+    if (productType !== product.product_type) patch.product_type = productType
     if (active !== product.is_active) patch.is_active = active
   }
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -54,7 +56,7 @@ export function ProductForm({ product: initialRecord, onSaved }: { product?: Pro
     setBusy(true)
     setError('')
     try {
-      const saved = product ? await updateProduct(product.id, pending.current!.body, pending.current!.version, pending.current!.key) : await createProduct({ name: normalizedName, current_price_kurus: kurus, is_active: active }, requestKey.current)
+      const saved = product ? await updateProduct(product.id, pending.current!.body, pending.current!.version, pending.current!.key) : await createProduct({ name: normalizedName, current_price_kurus: kurus, is_active: active, product_type: productType }, requestKey.current)
       if (mounted.current) onSaved(saved)
     } catch (cause) {
       if (cause instanceof ApiError && [400,403,404,409,413,415,422,428].includes(cause.status)) { pending.current = null; setUncertain(false) }
@@ -83,6 +85,9 @@ export function ProductForm({ product: initialRecord, onSaved }: { product?: Pro
         <Input label="Katalog fiyatı (₺, isteğe bağlı)" name="price" type="text" inputMode="decimal" value={price} maxLength={32} disabled={busy || uncertain} error={errors.price}
           hint="Boş bırakırsanız satışta fiyat girilir. Binlik ayırıcı kullanmayın. Virgül veya nokta ile en fazla iki ondalık basamak girin."
           onChange={event => { setPrice(event.target.value); setErrors(current => ({ ...current, price: undefined })) }} />
+        <Select label="Ürün türü" value={productType} disabled={busy || uncertain} onChange={event => setProductType(event.target.value as Product['product_type'])}>
+          <option value="standard">Standart ürün</option><option value="damacana">Damacana — su fişiyle ödenebilir</option><option value="water_voucher">Damacana Su Fişi</option>
+        </Select><p className="sale-help">Geçmişte satılmış ürün fiş ürününe dönüştürülemez; satılmış fişin türü değiştirilemez. Gerekirse yeni ürün oluşturun.</p>
         <label className="product-active-field"><input name="is_active" type="checkbox" checked={active} disabled={busy || uncertain} onChange={event => setActive(event.target.checked)} />Aktif ürün</label>
         {conflict && <div role="status"><p>Bu kayıt başka bir kullanıcı tarafından değiştirildi. Yazdığınız bilgiler korunuyor.</p><Button disabled={busy} onClick={() => { void refresh() }}>Güncel bilgileri yükle</Button></div>}
         {review && product && <div role="status"><p>Düzenlediğiniz alanlar korundu. Güncel kayıtla karşılaştırıp tekrar onaylayın.</p><details><summary>Sunucudaki güncel bilgiler</summary><p>{product.name}</p><p>{catalogMoney(product.current_price_kurus)}</p></details></div>}

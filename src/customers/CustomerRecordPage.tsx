@@ -1,3 +1,4 @@
+import { CustomerVouchers } from './CustomerVouchers'
 import { useCallback } from 'react'
 import { Badge, Card, ErrorState, LoadingState } from '../components/ui'
 import { PageHeader } from '../pages/PageHeader'
@@ -32,7 +33,7 @@ export function CustomerRecordPage({ id, editing, role, notice, onSaved }: { id:
         <div><dt>Son güncelleme</dt><dd><time dateTime={customer.updated_at}>{date.format(new Date(customer.updated_at))}</time></dd></div>
       </dl>
     </Card>
-    <div className="finance-customer-panels"><CustomerAccount id={id} /><CustomerLedger id={id} /></div>
+    <div className="finance-customer-panels"><CustomerAccount id={id} /><CustomerVouchers id={id} /><CustomerLedger id={id} /></div>
     <a className="text-link" href="#/musteriler">Müşteri listesine dön</a>
   </>
 }
