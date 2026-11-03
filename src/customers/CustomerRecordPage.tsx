@@ -21,7 +21,10 @@ export function CustomerRecordPage({ id, editing, role, notice, onSaved }: { id:
   if (editing) return <CustomerForm key={id} customer={customer} role={role} onSaved={onSaved} />
   return <>
     <PageHeader title={customer.name} description="İletişim ve teslimat bilgileri."
-      actions={<a className="ui-button ui-button--primary" href={customerHref(id) + '/duzenle'}>Bilgileri düzenle</a>} />
+      actions={<>
+        <a className="ui-button ui-button--primary" href={customerHref(id) + '/duzenle'}>Bilgileri düzenle</a>
+        <a className="ui-button ui-button--primary" href={`#/satislar/yeni?${new URLSearchParams({ customer_id: id, mode: 'normal' })}`}>Yeni Satış</a>
+      </>} />
     {notice && <p className="customer-success" role="status">{notice}</p>}
     <Card title="Müşteri bilgileri" accessory={<Badge tone={customer.is_active ? 'success' : 'neutral'}>{customer.is_active ? 'Aktif' : 'Pasif'}</Badge>}>
       <dl className="customer-details">
